@@ -1,0 +1,61 @@
+// Part 2: treadmill speed box with a unit dropdown (km/h, mph, min/km, min/mile). Always reports km/h (or null if invalid) to the page.
+"use client";
+
+import { useState } from "react";
+import { asKmh, format, fromKmh, isPace, parse, rangeText, toKmh, UNIT_LABELS, type SpeedUnit } from "@/lib/speed";
+
+export default function SpeedInput({ onChange }: { onChange: (kmh: number | null) => void }) {
+  const [text, setText] = useState("");
+  const [unit, setUnit] = useState<SpeedUnit>("kmh");
+
+  const pace = isPace(unit);
+  const invalid = text !== "" && toKmh(text, unit) === null;
+  const range = `${rangeText(unit)} ${UNIT_LABELS[unit]}`;
+
+  function update(nextText: string, nextUnit: SpeedUnit) {
+    setText(nextText);
+    setUnit(nextUnit);
+    onChange(toKmh(nextText, nextUnit));
+  }
+
+  // Switching units converts the number in the box, so the actual speed stays the same.
+  function changeUnit(nextUnit: SpeedUnit) {
+    const kmh = asKmh(parse(text, unit), unit);
+    const converted = kmh > 0 && isFinite(kmh) ? format(fromKmh(kmh, nextUnit), nextUnit) : text;
+    update(converted, nextUnit);
+  }
+
+  return (
+    <div className="space-y-1">
+      <label htmlFor="speed" className="block font-medium">Treadmill speed</label>
+      <div className="flex gap-2">
+        <input
+          id="speed"
+          // Paces need a ":" (5:30), which a number box won't accept.
+          type={pace ? "text" : "number"}
+          inputMode={pace ? "text" : "decimal"}
+          step={pace ? undefined : 0.5}
+          placeholder={pace ? "5:30" : "10"}
+          value={text}
+          onChange={(e) => update(e.target.value, unit)}
+          aria-invalid={invalid}
+          aria-describedby="speed-hint"
+          className="w-28 rounded border px-3 py-2"
+        />
+        <select
+          aria-label="Speed unit"
+          value={unit}
+          onChange={(e) => changeUnit(e.target.value as SpeedUnit)}
+          className="rounded border px-3 py-2"
+        >
+          {Object.entries(UNIT_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+      </div>
+      <p id="speed-hint" className={invalid ? "text-sm text-red-600" : "text-sm text-gray-600"}>
+        {invalid ? `Enter a ${pace ? "pace" : "speed"} between ${range}.` : `Between ${range}. Keep the same speed for every scan.`}
+      </p>
+    </div>
+  );
+}
