@@ -1,7 +1,7 @@
 // Part 4: onboarding answers and goals for the logged-in user. Browser-only (see sessions.ts).
 import { supabase } from "@/lib/supabase/client";
 import type { Goal, MetricKey } from "@/lib/types";
-import type { Fitness, Injury, Runner, Sex } from "@/lib/Goal_value/computeGoals";
+import { computeGoals, type Fitness, type Injury, type Runner, type Sex } from "@/lib/Goal_value/computeGoals";
 
 export type Profile = {
   sex: Sex;
@@ -75,4 +75,13 @@ export async function saveGoals(g: Goal[]): Promise<void> {
   const id = await userId();
   const { error } = await supabase.from("goals").upsert(g.map((x) => ({ user_id: id, ...x })));
   if (error) throw error;
+}
+
+/** Saved goals, with computeGoals' suggestion for any metric (or target) the user hasn't saved yet. */
+export async function goalsFor(p: Profile): Promise<Goal[]> {
+  const saved = await getGoals();
+  return Object.entries(computeGoals(toRunner(p))).map(([metric, g]) => {
+    const s = saved.find((x) => x.metric === metric);
+    return { metric: metric as MetricKey, min: s?.min ?? g.min, max: s?.max ?? g.max, target: s?.target ?? g.target };
+  });
 }

@@ -78,3 +78,10 @@ export async function getSession(id: string): Promise<Session | null> {
   if (error) throw error;
   return data && toSession(data);
 }
+
+/** A temporary link to a scan's video in the private "scans" bucket. */
+export async function getVideoUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from("scans").createSignedUrl(path, 3600); // 1 h, plenty for one viewing
+  if (error) throw error;
+  return data.signedUrl;
+}

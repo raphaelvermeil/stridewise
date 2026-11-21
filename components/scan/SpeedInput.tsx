@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { input } from "@/components/ui/styles";
 import { asKmh, format, fromKmh, isPace, parse, rangeText, toKmh, UNIT_LABELS, type SpeedUnit } from "@/lib/speed";
 
 export default function SpeedInput({ onChange }: { onChange: (kmh: number | null) => void }) {
@@ -26,7 +27,7 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <label htmlFor="speed" className="block font-medium">Treadmill speed</label>
       <div className="flex gap-2">
         <input
@@ -40,20 +41,20 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
           onChange={(e) => update(e.target.value, unit)}
           aria-invalid={invalid}
           aria-describedby="speed-hint"
-          className="w-28 rounded border px-3 py-2"
+          className={`${input} w-28`}
         />
         <select
           aria-label="Speed unit"
           value={unit}
           onChange={(e) => changeUnit(e.target.value as SpeedUnit)}
-          className="rounded border px-3 py-2"
+          className={input}
         >
           {Object.entries(UNIT_LABELS).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
       </div>
-      <p id="speed-hint" className={invalid ? "text-sm text-red-600" : "text-sm text-gray-600"}>
+      <p id="speed-hint" className={invalid ? "text-body-sm text-red-600" : "text-body-sm text-muted"}>
         {invalid ? `Enter a ${pace ? "pace" : "speed"} between ${range}.` : `Between ${range}. Keep the same speed for every scan.`}
       </p>
     </div>

@@ -5,6 +5,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { getProfile } from "@/lib/db/profiles";
+import Logo from "@/components/Logo";
+import { btnPrimary, card, input, label } from "@/components/ui/styles";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +27,7 @@ export default function LoginPage() {
   }, [router]);
 
   async function nextPage() {
-    return (await getProfile()) ? "/my-data" : "/onboarding";
+    return (await getProfile()) ? "/dashboard" : "/onboarding";
   }
 
   async function submit(e: FormEvent<HTMLFormElement>) {
@@ -49,31 +51,34 @@ export default function LoginPage() {
   const title = signUp ? "Sign up" : "Log in";
 
   return (
-    <main className="mx-auto max-w-sm p-6">
-      <h1 className="mb-4 text-2xl font-semibold">{title}</h1>
-      <form onSubmit={submit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1">
+    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 p-6">
+      <div className="flex justify-center"><Logo href="/" /></div>
+      <div className={card}>
+      <h1 className="mb-6 text-h2">{title}</h1>
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <label className={label}>
           Email
-          <input className="rounded border p-2" type="email" required autoComplete="email"
+          <input className={input} type="email" required autoComplete="email"
             value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
-        <label className="flex flex-col gap-1">
+        <label className={label}>
           Password
-          <input className="rounded border p-2" type="password" required minLength={6}
+          <input className={input} type="password" required minLength={6}
             autoComplete={signUp ? "new-password" : "current-password"}
             value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
-        <button className="rounded bg-black p-2 text-white disabled:opacity-50" disabled={busy}>
+        <button className={`${btnPrimary} mt-2`} disabled={busy}>
           {busy ? "…" : title}
         </button>
-        {message && <p role="alert">{message}</p>}
+        {message && <p role="alert" className="text-body-sm text-muted">{message}</p>}
       </form>
-      <p className="mt-4 text-sm text-gray-600">
+      <p className="mt-6 text-body-sm text-muted">
         {signUp ? "Already have an account? " : "New to StrideWise? "}
-        <button type="button" onClick={toggle} className="font-medium text-black underline">
+        <button type="button" onClick={toggle} className="font-medium text-ink underline">
           {signUp ? "Log in" : "Sign up"}
         </button>
       </p>
+      </div>
     </main>
   );
 }
