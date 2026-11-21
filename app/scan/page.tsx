@@ -9,6 +9,7 @@ import CameraCheck from "@/components/scan/CameraCheck";
 import SpeedInput from "@/components/scan/SpeedInput";
 import Recorder from "@/components/scan/Recorder";
 import { setLatestRecording } from "@/lib/recording";
+import { say } from "@/lib/voice";
 import { analyze } from "@/lib/metrics";
 import { getProfile } from "@/lib/db/profiles";
 import { saveScan } from "@/lib/db/sessions";
@@ -33,6 +34,7 @@ export default function ScanPage() {
     async (video: Blob, frames: LandmarkFrame[]) => {
       setLatestRecording(URL.createObjectURL(video)); // still shown on My Data even if saving fails
       setSaveStatus("Saving your scan…");
+      say("Saving your scan.");
       try {
         const profile = await getProfile();
         if (!profile) throw new Error("finish onboarding first (your height is needed for the metrics)");
@@ -40,6 +42,7 @@ export default function ScanPage() {
         router.push("/my-data");
       } catch (e) {
         setSaveStatus(`Could not save the scan: ${e instanceof Error ? e.message : String(e)}`);
+        say("Could not save the scan. Check the screen for details.");
       }
     },
     [router],
