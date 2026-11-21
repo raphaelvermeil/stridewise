@@ -2,9 +2,10 @@
 // If the camera check fails during the countdown or recording, the take is thrown away and it starts over once the runner is back in position.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { say } from "@/lib/voice";
+import type { LandmarkFrame } from "@/lib/types";
 
 const COUNTDOWN_S = 10;
 const RECORD_S = 30;
@@ -14,11 +15,14 @@ type Phase = "waiting" | "countdown" | "recording" | "done";
 type Props = {
   ready: boolean; // camera check passing and a valid speed is entered
   stream: MediaStream | null; // the live webcam feed to record
-  onDone: (videoUrl: string) => void; // must not change between renders, or the timer restarts
+  frame: LandmarkFrame | null; // latest live landmarks from PoseOverlay, collected while recording
+  onDone: (video: Blob, frames: LandmarkFrame[]) => void; // must not change between renders, or the timer restarts
 };
 
-export default function Recorder({ ready, stream, onDone }: Props) {
+export default function Recorder({ ready, stream, frame, onDone }: Props) {
   const [phase, setPhase] = useState<Phase>("waiting");
+  const frames = useRef<LandmarkFrame[]>([]);
+  const startedAt = useRef(0); // performance.now() when recording started, so frame t = ms into the video
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [disrupted, setDisrupted] = useState(false);
 
@@ -39,6 +43,12 @@ export default function Recorder({ ready, stream, onDone }: Props) {
     setPhase("waiting");
   }, [phase, ready]);
 
+  // Collect every live frame during the take. shortcut: live detection runs at the webcam's rate (~30 fps,
+  // what the metrics expect); re-run extractFrames on the saved video if a slow device drops frames.
+  useEffect(() => {
+    if (phase === "recording" && frame) frames.current.push({ ...frame, t: frame.t - startedAt.current });
+  }, [phase, frame]);
+
   // 3. Countdown and recording each run a 1-second ticker; when it hits 0 we move to the next phase.
   useEffect(() => {
     if (phase !== "countdown" && phase !== "recording") return;
@@ -50,8 +60,10 @@ export default function Recorder({ ready, stream, onDone }: Props) {
       recorder = new MediaRecorder(stream!);
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = () => {
-        if (finished) onDone(URL.createObjectURL(new Blob(chunks, { type: recorder!.mimeType })));
+        if (finished) onDone(new Blob(chunks, { type: recorder!.mimeType }), frames.current);
       };
+      frames.current = [];
+      startedAt.current = performance.now();
       recorder.start();
       say("Recording. Keep running naturally.");
     }
