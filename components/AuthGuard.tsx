@@ -4,6 +4,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import Navbar from "@/components/Navbar";
 
 const PUBLIC_PATHS = ["/", "/login"];
 
@@ -22,19 +23,12 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
     });
   }, [pathname, isPublic, router]);
 
-  async function logout() {
-    await supabase.auth.signOut();
-    router.replace("/login");
-  }
-
   // Don't render protected pages (or let them query the db) until we know who is logged in.
   if (!allowed) return null;
   if (isPublic) return children;
   return (
     <>
-      <button onClick={logout} className="fixed top-3 right-3 rounded border px-3 py-1 text-sm">
-        Log out
-      </button>
+      <Navbar />
       {children}
     </>
   );

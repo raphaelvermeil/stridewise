@@ -4,10 +4,13 @@
 import { useEffect, useState } from "react";
 import VideoUpload from "@/components/scan/VideoUpload";
 import PoseOverlay from "@/components/scan/PoseOverlay";
+import CameraCheck from "@/components/scan/CameraCheck";
+import type { LandmarkFrame } from "@/lib/types";
 
 export default function ScanPage() {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // set when a clip is uploaded
+  const [frame, setFrame] = useState<LandmarkFrame | null>(null); // latest body points from the overlay
 
   // Turn the webcam on when the <video> appears, and off again when the page closes or a clip is uploaded.
   useEffect(() => {
@@ -41,8 +44,9 @@ export default function ScanPage() {
           playsInline
           className="block w-full"
         />
-        <PoseOverlay video={video} />
+        <PoseOverlay video={video} onFrame={setFrame} />
       </div>
+      <CameraCheck frame={frame} />
     </main>
   );
 }
