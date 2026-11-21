@@ -1,5 +1,5 @@
-// Part 2: once the runner is in position, a voice prompt, a 10 s countdown, then a 30 s recording that starts and stops on its own.
-// If the camera check fails during the countdown or recording, the take is thrown away and it starts over once the runner is back in position.
+// Part 2: once the runner is in position, a voice prompt, a spoken 10 s countdown, then a 30 s recording that starts and stops on its own.
+// If the camera check fails before or during the recording, the take is thrown away and it starts over once the runner is back in position.
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -9,7 +9,9 @@ import type { LandmarkFrame } from "@/lib/types";
 const COUNTDOWN_S = 10;
 const RECORD_S = 30;
 
-type Phase = "waiting" | "countdown" | "recording" | "done";
+// announcing: the "position reached" message is being spoken; the countdown starts when it finishes.
+type Phase = "waiting" | "announcing" | "countdown" | "recording" | "done";
+const ACTIVE: Phase[] = ["announcing", "countdown", "recording"]; // phases a failed camera check interrupts
 
 type Props = {
   ready: boolean; // camera check passing and a valid speed is entered
@@ -25,18 +27,30 @@ export default function Recorder({ ready, stream, frame, onDone }: Props) {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [disrupted, setDisrupted] = useState(false);
 
-  // 1. Waiting -> countdown, the moment the runner is in position (first time, or back after a disruption).
+  // 1. Waiting -> announcing, the moment the runner is in position (first time, or back after a disruption).
   useEffect(() => {
     if (phase !== "waiting" || !ready) return;
     setDisrupted(false);
-    say("Position reached correctly. Start the treadmill. Recording starts in ten seconds.");
-    setPhase("countdown");
+    setPhase("announcing");
   }, [phase, ready]);
 
-  // 2. Disrupted: a check failed during the countdown or recording -> back to waiting.
+  // 2. Speak the message, then start the countdown once it has finished, so the voice never talks over the numbers.
   useEffect(() => {
-    if (ready || (phase !== "countdown" && phase !== "recording")) return;
-    speechSynthesis.cancel(); // drop any "3, 2, 1" still queued
+    if (phase !== "announcing") return;
+    let cancelled = false;
+    say("Position reached correctly. Start the treadmill. Recording starts in ten seconds.").then(() => {
+      // Only move on if nothing else changed the phase meanwhile (a disruption cancels the speech, which also "finishes" it).
+      if (!cancelled) setPhase((p) => (p === "announcing" ? "countdown" : p));
+    });
+    return () => {
+      cancelled = true; // disrupted mid-message: don't start the countdown
+    };
+  }, [phase]);
+
+  // 3. Disrupted: a check failed before or during the recording -> back to waiting.
+  useEffect(() => {
+    if (ready || !ACTIVE.includes(phase)) return;
+    speechSynthesis.cancel(); // drop anything still queued, e.g. the countdown numbers
     say("Recording disrupted. Get back into position and it will restart.");
     setDisrupted(true);
     setPhase("waiting");
@@ -48,7 +62,7 @@ export default function Recorder({ ready, stream, frame, onDone }: Props) {
     if (phase === "recording" && frame) frames.current.push({ ...frame, t: frame.t - startedAt.current });
   }, [phase, frame]);
 
-  // 3. Countdown and recording each run a 1-second ticker; when it hits 0 we move to the next phase.
+  // 4. Countdown and recording each run a 1-second ticker; when it hits 0 we move to the next phase.
   useEffect(() => {
     if (phase !== "countdown" && phase !== "recording") return;
 
@@ -69,10 +83,11 @@ export default function Recorder({ ready, stream, frame, onDone }: Props) {
 
     let left = phase === "countdown" ? COUNTDOWN_S : RECORD_S;
     setSecondsLeft(left);
+    if (phase === "countdown") say(String(left)); // "10"
     const id = setInterval(() => {
       left -= 1;
       setSecondsLeft(left);
-      if (phase === "countdown" && left > 0 && left <= 3) say(String(left));
+      if (phase === "countdown" && left > 0) say(String(left)); // "9" ... "1"
       if (phase === "recording" && left === 15) say("15 seconds left.");
       if (left === 0) {
         clearInterval(id);
@@ -108,6 +123,11 @@ export default function Recorder({ ready, stream, frame, onDone }: Props) {
           </div>
           <p className="absolute top-[calc(50%+10rem)] text-h3 text-white drop-shadow">Start the treadmill</p>
         </div>
+      )}
+      {phase === "announcing" && (
+        <p className="absolute top-6 left-1/2 w-[min(32rem,calc(100vw-9rem))] -translate-x-1/2 rounded-lg bg-surface px-5 py-3 text-center font-medium shadow-md">
+          Position reached. Start the treadmill…
+        </p>
       )}
       {phase === "recording" && (
         <p className="absolute top-6 left-1/2 -translate-x-1/2 rounded-full bg-surface px-5 py-2 font-bold tabular-nums shadow-md">
