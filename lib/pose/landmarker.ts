@@ -29,7 +29,8 @@ export async function extractFrames(video: HTMLVideoElement): Promise<LandmarkFr
     video.currentTime = t / 1000;
     await new Promise((r) => video.addEventListener("seeked", r, { once: true }));
     const landmarks = pose.detectForVideo(video, t).landmarks[0];
-    if (landmarks) frames.push({ t, landmarks }); // no person detected -> skip frame
+    const aspect = video.videoWidth / video.videoHeight;
+    if (landmarks) frames.push({ t, aspect, landmarks }); // no person detected -> skip frame
   }
   return frames;
 }
