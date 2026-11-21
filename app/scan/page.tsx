@@ -1,7 +1,7 @@
-// Part 2: speed + camera check -> voice prompt + countdown -> record -> analyze
+// Part 2: speed + camera check -> voice prompt + countdown -> record -> analyze -> save
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import VideoUpload from "@/components/scan/VideoUpload";
 import PoseOverlay from "@/components/scan/PoseOverlay";
@@ -9,6 +9,9 @@ import CameraCheck from "@/components/scan/CameraCheck";
 import SpeedInput from "@/components/scan/SpeedInput";
 import Recorder from "@/components/scan/Recorder";
 import { setLatestRecording } from "@/lib/recording";
+import { analyze } from "@/lib/metrics";
+import { getProfile } from "@/lib/db/profiles";
+import { saveScan } from "@/lib/db/sessions";
 import type { LandmarkFrame } from "@/lib/types";
 
 export default function ScanPage() {
@@ -18,15 +21,26 @@ export default function ScanPage() {
   const [frame, setFrame] = useState<LandmarkFrame | null>(null); // latest body points from the overlay
   const [speedKmh, setSpeedKmh] = useState<number | null>(null); // null until a valid speed is entered
   const [cameraReady, setCameraReady] = useState(false); // camera check passing (with a 1 s grace either way)
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const speedRef = useRef(speedKmh);
+  speedRef.current = speedKmh;
   const router = useRouter();
 
-  // A finished recording goes straight to the page with that scan's data.
-  // useCallback keeps this the same function between renders, so the Recorder's timer doesn't restart.
-  // TODO (step 4): go to /results/<sessionId> once the scan is analysed and saved.
+  // A finished take is analysed and saved to Supabase (video + landmarks + metrics, per user), then we go to My Data.
+  // Stable (router never changes) so the Recorder timer is not restarted mid-take; reads the speed through a ref.
+  // If saving fails we stay here so the error can be read.
   const onRecorded = useCallback(
-    (url: string) => {
-      setLatestRecording(url);
-      router.push("/my-data");
+    async (video: Blob, frames: LandmarkFrame[]) => {
+      setLatestRecording(URL.createObjectURL(video)); // still shown on My Data even if saving fails
+      setSaveStatus("Saving your scan…");
+      try {
+        const profile = await getProfile();
+        if (!profile) throw new Error("finish onboarding first (your height is needed for the metrics)");
+        await saveScan({ treadmillSpeedKmh: speedRef.current!, metrics: analyze(frames, profile.heightCm), landmarks: frames, video });
+        router.push("/my-data");
+      } catch (e) {
+        setSaveStatus(`Could not save the scan: ${e instanceof Error ? e.message : String(e)}`);
+      }
     },
     [router],
   );
@@ -79,7 +93,8 @@ export default function ScanPage() {
       ) : (
         <CameraCheck frame={frame} onReady={setCameraReady} />
       )}
-      {stream && <Recorder ready={cameraReady && speedKmh !== null} stream={stream} onDone={onRecorded} />}
+      {stream && <Recorder ready={cameraReady && speedKmh !== null} stream={stream} frame={frame} onDone={onRecorded} />}
+      {saveStatus && <p aria-live="polite">{saveStatus}</p>}
     </main>
   );
 }

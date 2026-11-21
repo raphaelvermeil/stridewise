@@ -1,44 +1,68 @@
-// Part 2: once the runner is in position, a voice prompt, a 10 s countdown, then a 30 s recording that starts and stops on its own.
-// If the camera check fails during the countdown or recording, the take is thrown away and it starts over once the runner is back in position.
+// Part 2: once the runner is in position, a voice prompt, a spoken 10 s countdown, then a 30 s recording that starts and stops on its own.
+// If the camera check fails before or during the recording, the take is thrown away and it starts over once the runner is back in position.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { say } from "@/lib/voice";
+import type { LandmarkFrame } from "@/lib/types";
 
 const COUNTDOWN_S = 10;
 const RECORD_S = 30;
 
-type Phase = "waiting" | "countdown" | "recording" | "done";
+// announcing: the "position reached" message is being spoken; the countdown starts when it finishes.
+type Phase = "waiting" | "announcing" | "countdown" | "recording" | "done";
+const ACTIVE: Phase[] = ["announcing", "countdown", "recording"]; // phases a failed camera check interrupts
 
 type Props = {
   ready: boolean; // camera check passing and a valid speed is entered
   stream: MediaStream | null; // the live webcam feed to record
-  onDone: (videoUrl: string) => void; // must not change between renders, or the timer restarts
+  frame: LandmarkFrame | null; // latest live landmarks from PoseOverlay, collected while recording
+  onDone: (video: Blob, frames: LandmarkFrame[]) => void; // must not change between renders, or the timer restarts
 };
 
-export default function Recorder({ ready, stream, onDone }: Props) {
+export default function Recorder({ ready, stream, frame, onDone }: Props) {
   const [phase, setPhase] = useState<Phase>("waiting");
+  const frames = useRef<LandmarkFrame[]>([]);
+  const startedAt = useRef(0); // performance.now() when recording started, so frame t = ms into the video
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [disrupted, setDisrupted] = useState(false);
 
-  // 1. Waiting -> countdown, the moment the runner is in position (first time, or back after a disruption).
+  // 1. Waiting -> announcing, the moment the runner is in position (first time, or back after a disruption).
   useEffect(() => {
     if (phase !== "waiting" || !ready) return;
     setDisrupted(false);
-    say("Position reached correctly. Start the treadmill. Recording starts in ten seconds.");
-    setPhase("countdown");
+    setPhase("announcing");
   }, [phase, ready]);
 
-  // 2. Disrupted: a check failed during the countdown or recording -> back to waiting.
+  // 2. Speak the message, then start the countdown once it has finished, so the voice never talks over the numbers.
   useEffect(() => {
-    if (ready || (phase !== "countdown" && phase !== "recording")) return;
-    speechSynthesis.cancel(); // drop any "3, 2, 1" still queued
+    if (phase !== "announcing") return;
+    let cancelled = false;
+    say("Position reached correctly. Start the treadmill. Recording starts in ten seconds.").then(() => {
+      // Only move on if nothing else changed the phase meanwhile (a disruption cancels the speech, which also "finishes" it).
+      if (!cancelled) setPhase((p) => (p === "announcing" ? "countdown" : p));
+    });
+    return () => {
+      cancelled = true; // disrupted mid-message: don't start the countdown
+    };
+  }, [phase]);
+
+  // 3. Disrupted: a check failed before or during the recording -> back to waiting.
+  useEffect(() => {
+    if (ready || !ACTIVE.includes(phase)) return;
+    speechSynthesis.cancel(); // drop anything still queued, e.g. the countdown numbers
     say("Recording disrupted. Get back into position and it will restart.");
     setDisrupted(true);
     setPhase("waiting");
   }, [phase, ready]);
 
-  // 3. Countdown and recording each run a 1-second ticker; when it hits 0 we move to the next phase.
+  // Collect every live frame during the take. shortcut: live detection runs at the webcam's rate (~30 fps,
+  // what the metrics expect); re-run extractFrames on the saved video if a slow device drops frames.
+  useEffect(() => {
+    if (phase === "recording" && frame) frames.current.push({ ...frame, t: frame.t - startedAt.current });
+  }, [phase, frame]);
+
+  // 4. Countdown and recording each run a 1-second ticker; when it hits 0 we move to the next phase.
   useEffect(() => {
     if (phase !== "countdown" && phase !== "recording") return;
 
@@ -49,18 +73,21 @@ export default function Recorder({ ready, stream, onDone }: Props) {
       recorder = new MediaRecorder(stream!);
       recorder.ondataavailable = (e) => chunks.push(e.data);
       recorder.onstop = () => {
-        if (finished) onDone(URL.createObjectURL(new Blob(chunks, { type: recorder!.mimeType })));
+        if (finished) onDone(new Blob(chunks, { type: recorder!.mimeType }), frames.current);
       };
+      frames.current = [];
+      startedAt.current = performance.now();
       recorder.start();
       say("Recording. Keep running naturally.");
     }
 
     let left = phase === "countdown" ? COUNTDOWN_S : RECORD_S;
     setSecondsLeft(left);
+    if (phase === "countdown") say(String(left)); // "10"
     const id = setInterval(() => {
       left -= 1;
       setSecondsLeft(left);
-      if (phase === "countdown" && left > 0 && left <= 3) say(String(left));
+      if (phase === "countdown" && left > 0) say(String(left)); // "9" ... "1"
       if (phase === "recording" && left === 15) say("15 seconds left.");
       if (left === 0) {
         clearInterval(id);
@@ -87,9 +114,10 @@ export default function Recorder({ ready, stream, onDone }: Props) {
       {phase === "waiting" && !disrupted && (
         <p className="text-gray-600">Enter your speed and get into position. Recording starts automatically once every check passes.</p>
       )}
-      {phase === "countdown" && <p className="font-semibold">Start the treadmill. Recording in {secondsLeft}…</p>}
+      {phase === "announcing" && <p className="font-semibold">Position reached. Start the treadmill…</p>}
+      {phase === "countdown" && <p className="font-semibold">Recording in {secondsLeft}…</p>}
       {phase === "recording" && <p className="font-semibold text-red-600">● Recording… {secondsLeft} s left</p>}
-      {phase === "done" && <p className="font-semibold text-green-600">✓ Recording complete. Opening your scan…</p>}
+      {phase === "done" && <p className="font-semibold text-green-600">✓ Recording complete.</p>}
     </div>
   );
 }
