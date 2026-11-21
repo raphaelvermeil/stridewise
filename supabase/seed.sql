@@ -1,0 +1,2 @@
+-- Part 4: 4-5 fake past sessions for the demo account so the My Data charts have data.
+-- TODO: replace <demo-user-id> with the demo account's id from Authentication > Users.

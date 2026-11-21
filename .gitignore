@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+.env*.local
+.env
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+
+# Raw demo videos can be large; keep them out of git (share via Drive)
+fixtures/clips/*
+!fixtures/clips/.gitkeep
