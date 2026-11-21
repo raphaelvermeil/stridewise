@@ -28,6 +28,7 @@ export type Session = {
   createdAt: string; // ISO date
   treadmillSpeedKmh: number;
   metrics: SessionMetrics;
+  videoPath: string | null; // in the private "scans" bucket; null for seeded sessions. Landmarks are stored too but not loaded here (large).
 };
 
 export type MetricKey = keyof SessionMetrics;
@@ -35,4 +36,4 @@ export type MetricKey = keyof SessionMetrics;
 /** One point on the end-of-session graph (Part 1 analyzeOverTime → Part 3 charts). t = landing time in ms. */
 export type MetricPoint = SessionMetrics & { t: number };
 
-export type Goal = { metric: MetricKey; min: number; max: number };
+export type Goal = { metric: MetricKey; min: number; max: number; target?: number }; // target: from computeGoals; missing on older goals

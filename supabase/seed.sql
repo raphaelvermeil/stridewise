@@ -1,5 +1,5 @@
 -- Part 4: demo account + 5 past sessions so the My Data charts have data.
--- Run in the Supabase SQL editor after schema.sql and policies.sql. Safe to re-run.
+-- Run in the Supabase SQL editor after schema.sql, policies.sql and profile-goals.sql. Safe to re-run.
 -- Login: demo@stridewise.app / stridewise-demo
 
 create extension if not exists pgcrypto;
@@ -23,8 +23,8 @@ values (
   now(), now(), now()
 ) on conflict (provider_id, provider) do nothing;
 
-insert into profiles (user_id, height_cm, experience, runs_per_week, injury_history)
-values ('11111111-1111-1111-1111-111111111111', 178, 'intermediate', 3, 'shin splints (2025)')
+insert into profiles (user_id, sex, age, height_cm, weight_kg, experience, runs_per_week, injury_history)
+values ('11111111-1111-1111-1111-111111111111', 'male', 29, 178, 72, 'intermediate', 3, array['shin'])
 on conflict (user_id) do nothing;
 
 insert into goals (user_id, metric, min, max) values
