@@ -1,30 +1,27 @@
-// Part 2: treadmill speed box with a km/h / mph dropdown. Always reports km/h (or null if invalid) to the page.
+// Part 2: treadmill speed box with a unit dropdown (km/h, mph, min/km, min/mile). Always reports km/h (or null if invalid) to the page.
 "use client";
 
 import { useState } from "react";
-import { asKmh, fromKmh, MAX_KMH, MIN_KMH, toKmh, type SpeedUnit } from "@/lib/speed";
-
-const round1 = (n: number) => Math.round(n * 10) / 10;
+import { asKmh, format, fromKmh, isPace, parse, rangeText, toKmh, UNIT_LABELS, type SpeedUnit } from "@/lib/speed";
 
 export default function SpeedInput({ onChange }: { onChange: (kmh: number | null) => void }) {
   const [text, setText] = useState("");
   const [unit, setUnit] = useState<SpeedUnit>("kmh");
 
-  // The 3-25 km/h range, shown in whichever unit is picked (1.9-15.5 mph).
-  const min = Math.ceil(fromKmh(MIN_KMH, unit) * 10) / 10;
-  const max = Math.floor(fromKmh(MAX_KMH, unit) * 10) / 10;
-  const invalid = text !== "" && toKmh(Number(text), unit) === null;
+  const pace = isPace(unit);
+  const invalid = text !== "" && toKmh(text, unit) === null;
+  const range = `${rangeText(unit)} ${UNIT_LABELS[unit]}`;
 
   function update(nextText: string, nextUnit: SpeedUnit) {
     setText(nextText);
     setUnit(nextUnit);
-    onChange(toKmh(Number(nextText), nextUnit));
+    onChange(toKmh(nextText, nextUnit));
   }
 
   // Switching units converts the number in the box, so the actual speed stays the same.
   function changeUnit(nextUnit: SpeedUnit) {
-    const value = Number(text);
-    const converted = text === "" || isNaN(value) ? text : String(round1(fromKmh(asKmh(value, unit), nextUnit)));
+    const kmh = asKmh(parse(text, unit), unit);
+    const converted = kmh > 0 && isFinite(kmh) ? format(fromKmh(kmh, nextUnit), nextUnit) : text;
     update(converted, nextUnit);
   }
 
@@ -34,11 +31,11 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
       <div className="flex gap-2">
         <input
           id="speed"
-          type="number"
-          inputMode="decimal"
-          min={min}
-          max={max}
-          step={0.5}
+          // Paces need a ":" (5:30), which a number box won't accept.
+          type={pace ? "text" : "number"}
+          inputMode={pace ? "text" : "decimal"}
+          step={pace ? undefined : 0.5}
+          placeholder={pace ? "5:30" : "10"}
           value={text}
           onChange={(e) => update(e.target.value, unit)}
           aria-invalid={invalid}
@@ -51,12 +48,13 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
           onChange={(e) => changeUnit(e.target.value as SpeedUnit)}
           className="rounded border px-3 py-2"
         >
-          <option value="kmh">km/h</option>
-          <option value="mph">mph</option>
+          {Object.entries(UNIT_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
       </div>
       <p id="speed-hint" className={invalid ? "text-sm text-red-600" : "text-sm text-gray-600"}>
-        {invalid ? `Enter a speed between ${min} and ${max} ${unit === "kmh" ? "km/h" : "mph"}.` : `Between ${min} and ${max} ${unit === "kmh" ? "km/h" : "mph"}. Keep the same speed for every scan.`}
+        {invalid ? `Enter a ${pace ? "pace" : "speed"} between ${range}.` : `Between ${range}. Keep the same speed for every scan.`}
       </p>
     </div>
   );
