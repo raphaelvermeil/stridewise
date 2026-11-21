@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { checkCamera } from "./camera-check.ts";
 
-// clip1.json was exported before frames had `aspect`; the body proportions say it is a portrait (9:16) phone clip.
-const clip1 = JSON.parse(readFileSync("fixtures/landmarks/clip1.json", "utf8")).map((f: any) => ({ aspect: 9 / 16, ...f }));
+// Fixture frames carry `aspect`; the 9:16 default only applies to old exports without it.
+const clip1 = JSON.parse(readFileSync("fixtures/landmarks/2026-11-21_session-1.json", "utf8")).map((f: any) => ({ aspect: 9 / 16, ...f }));
 
 test("real side-view clip passes on most frames", () => {
   const passed = clip1.filter((f: any) => checkCamera(f).ok).length;

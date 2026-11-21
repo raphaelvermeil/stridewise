@@ -3,9 +3,10 @@
 create table profiles (
   user_id uuid primary key references auth.users on delete cascade,
   height_cm numeric,
+  weight_kg numeric,
   experience text,
   runs_per_week int,
-  injury_history text
+  injury_history text[] not null default '{}'
 );
 
 create table sessions (

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { recommend } from "./rules.ts";
 
-const m = { cadenceSpm: 160, maxThighAngleDeg: 45, overstrideRatio: 0.3, torsoLeanDeg: 6, elbowAngleDeg: 90, headOffsetRatio: 0, shinAngleDeg: 4, groundContactMs: 240 };
+const m = { cadenceSpm: 160, maxThighAngleDeg: 45, overstrideRatio: 0.3, torsoLeanDeg: 6, elbowAngleDeg: 90, headOffsetRatio: 0, shinAngleDeg: 4, groundContactMs: 240, verticalOscillationCm: 8 };
 
 test("flags only metrics outside their goal, in the right direction", () => {
   const recs = recommend(m, [

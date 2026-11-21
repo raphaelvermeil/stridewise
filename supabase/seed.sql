@@ -23,8 +23,8 @@ values (
   now(), now(), now()
 ) on conflict (provider_id, provider) do nothing;
 
-insert into profiles (user_id, height_cm, experience, runs_per_week, injury_history)
-values ('11111111-1111-1111-1111-111111111111', 178, 'intermediate', 3, 'shin splints (2025)')
+insert into profiles (user_id, height_cm, weight_kg, experience, runs_per_week, injury_history)
+values ('11111111-1111-1111-1111-111111111111', 178, 72, 'intermediate', 3, array['Shin splints (medial tibial stress syndrome)'])
 on conflict (user_id) do nothing;
 
 insert into goals (user_id, metric, min, max) values

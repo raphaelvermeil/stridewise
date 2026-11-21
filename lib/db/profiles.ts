@@ -4,9 +4,10 @@ import type { Goal, MetricKey } from "@/lib/types";
 
 export type Profile = {
   heightCm: number;
+  weightKg: number;
   experience: string;
   runsPerWeek: number;
-  injuryHistory: string;
+  injuryHistory: string[]; // empty = no past injuries
 };
 
 async function userId(): Promise<string> {
@@ -21,6 +22,7 @@ export async function getProfile(): Promise<Profile | null> {
   return (
     data && {
       heightCm: Number(data.height_cm),
+      weightKg: Number(data.weight_kg),
       experience: data.experience,
       runsPerWeek: data.runs_per_week,
       injuryHistory: data.injury_history,
@@ -32,6 +34,7 @@ export async function saveProfile(p: Profile): Promise<void> {
   const { error } = await supabase.from("profiles").upsert({
     user_id: await userId(),
     height_cm: p.heightCm,
+    weight_kg: p.weightKg,
     experience: p.experience,
     runs_per_week: p.runsPerWeek,
     injury_history: p.injuryHistory,
