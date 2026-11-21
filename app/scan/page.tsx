@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import VideoUpload from "@/components/scan/VideoUpload";
 import PoseOverlay from "@/components/scan/PoseOverlay";
 import CameraCheck from "@/components/scan/CameraCheck";
+import SpeedInput from "@/components/scan/SpeedInput";
 import type { LandmarkFrame } from "@/lib/types";
 
 export default function ScanPage() {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null); // set when a clip is uploaded
   const [frame, setFrame] = useState<LandmarkFrame | null>(null); // latest body points from the overlay
+  const [speedKmh, setSpeedKmh] = useState<number | null>(null); // null until a valid speed is entered
 
   // Turn the webcam on when the <video> appears, and off again when the page closes or a clip is uploaded.
   useEffect(() => {
@@ -47,6 +49,7 @@ export default function ScanPage() {
         <PoseOverlay video={video} onFrame={setFrame} />
       </div>
       <CameraCheck frame={frame} />
+      <SpeedInput onChange={setSpeedKmh} />
     </main>
   );
 }
