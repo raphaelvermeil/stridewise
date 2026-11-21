@@ -22,9 +22,13 @@ function nearSide(frames: LandmarkFrame[]) {
     : { ear: 8, shoulder: 12, elbow: 14, wrist: 16, hip: 24 };
 }
 
-/** Median of fn over frames where all the given points are visible. */
+/**
+ * Average of fn over frames where all the given points are visible.
+ * Average, not median: posture swings with every stride (torso ~−1°→15°), and a median of a swing jumps around.
+ */
 function overVisible(frames: LandmarkFrame[], points: number[], fn: (l: Landmark[]) => number): number {
-  return median(frames.filter((f) => points.every((i) => f.landmarks[i].visibility >= MIN_VIS)).map((f) => fn(f.landmarks)));
+  const vals = frames.filter((f) => points.every((i) => f.landmarks[i].visibility >= MIN_VIS)).map((f) => fn(f.landmarks));
+  return vals.length ? vals.reduce((a, b) => a + b) / vals.length : NaN; // NaN = never visible, no value
 }
 
 /** Knee drive: per step, the highest thigh angle (hip→knee, from vertical) of either leg; median over steps. */
