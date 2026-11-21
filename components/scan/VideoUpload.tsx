@@ -1,4 +1,5 @@
-// Part 2: upload a pre-recorded clip (main demo path)
+// Part 2: upload a pre-recorded clip
+// TODO: remove upload before the final product (live recording only). Kept so Parts 1 and 3 can test with clips.
 "use client";
 
 export default function VideoUpload({ onSelect }: { onSelect: (url: string) => void }) {
