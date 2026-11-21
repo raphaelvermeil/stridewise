@@ -3,7 +3,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { say } from "@/lib/voice";
 
 const COUNTDOWN_S = 10;
@@ -90,11 +89,7 @@ export default function Recorder({ ready, stream, onDone }: Props) {
       )}
       {phase === "countdown" && <p className="font-semibold">Start the treadmill. Recording in {secondsLeft}…</p>}
       {phase === "recording" && <p className="font-semibold text-red-600">● Recording… {secondsLeft} s left</p>}
-      {phase === "done" && (
-        <p className="font-semibold text-green-600">
-          ✓ Recording complete. <Link href="/my-data" className="underline">See it on My Data</Link>
-        </p>
-      )}
+      {phase === "done" && <p className="font-semibold text-green-600">✓ Recording complete. Opening your scan…</p>}
     </div>
   );
 }

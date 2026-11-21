@@ -1,6 +1,7 @@
-// Part 2: the last finished recording, shown at the bottom of My Data.
+// Part 2: the last finished recording, with the skeleton, shown at the bottom of My Data.
 "use client";
 
+import AnnotatedPlayback from "@/components/results/AnnotatedPlayback";
 import { getLatestRecording } from "@/lib/recording";
 
 export default function LatestRecording() {
@@ -9,7 +10,7 @@ export default function LatestRecording() {
   return (
     <section className="space-y-2">
       <h2 className="text-lg font-semibold">Latest recording</h2>
-      <video src={url} controls playsInline className="block w-full max-w-2xl" />
+      <AnnotatedPlayback src={url} />
     </section>
   );
 }
