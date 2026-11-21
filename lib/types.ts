@@ -5,8 +5,8 @@
 /** One MediaPipe body point. x, y are 0..1 of the frame width/height. */
 export type Landmark = { x: number; y: number; z: number; visibility: number };
 
-/** One video frame: 33 MediaPipe pose landmarks + timestamp in ms. */
-export type LandmarkFrame = { t: number; landmarks: Landmark[] };
+/** One video frame: 33 MediaPipe pose landmarks + timestamp in ms + video width/height (to scale x so angles are true). */
+export type LandmarkFrame = { t: number; aspect: number; landmarks: Landmark[] };
 
 // ---- 2. Session record (Part 1 produces metrics, Part 4 stores, Part 3 displays) ----
 
@@ -17,6 +17,8 @@ export type SessionMetrics = {
   torsoLeanDeg: number; // from vertical, + = forward
   elbowAngleDeg: number;
   headOffsetRatio: number; // ear ahead of shoulder / torso length
+  shinAngleDeg: number; // at foot contact, from vertical, + = ankle ahead of knee
+  groundContactMs: number; // approximate: ±1 frame per step at 30 fps
 };
 
 export type Session = {
