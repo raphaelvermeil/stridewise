@@ -16,6 +16,8 @@
  *     not from these datasets. They are marked [lit] below.
  */
 
+import type { MetricKey } from "@/lib/types";
+
 export type Sex = "male" | "female";
 export type Fitness = "beginner" | "intermediate" | "advanced" | "elite";
 export type Injury =
@@ -37,11 +39,8 @@ export interface Runner {
 
 export type Basis = "data" | "data+lit" | "lit";
 export interface Range { target: number; min: number; max: number; basis: Basis }
-export type Goals = Record<
-  | "cadenceSpm" | "maxThighAngleDeg" | "overstrideRatio" | "torsoLeanDeg"
-  | "elbowAngleDeg" | "headOffsetRatio" | "shinAngleDeg" | "groundContactMs",
-  Range
->;
+/** One goal per metric analyze() returns; adding a metric there forces a goal here. */
+export type Goals = Record<MetricKey, Range>;
 
 const r = (v: number, d = 0) => Math.round(v * 10 ** d) / 10 ** d;
 
@@ -82,6 +81,10 @@ export function computeGoals(p: Runner): Goals {
     return a;
   }, {} as Record<string, number>);
   const injCad = Math.min(inj.cad ?? 0, 5);
+  // Caps (like cadence's) so stacked injuries can't push a max below its target.
+  const injShinMax = Math.max(inj.shinMax ?? 0, -3);
+  const injOverMax = Math.max(inj.overMax ?? 0, -0.025);
+  const injTorsoMax = Math.max(inj.torsoMax ?? 0, -2);
 
   // ---- Cadence (RIC healthy OLS, R² = 0.25) ----
   // At 10 km/h, 172 cm, BMI 23, age 39 the typical cadence is 167 spm.
@@ -131,13 +134,15 @@ export function computeGoals(p: Runner): Goals {
     cadenceSpm:       { target: r(cad), min: r(cad - 5), max: r(cad + 10), basis: "data+lit" },
     groundContactMs:  { target: r(gct), min: r(gct - 25), max: r(gct + 15), basis: "data" },
     shinAngleDeg:     { target: r(shinMed - 1.6, 1), min: -2,
-                        max: r(shinMed + 1.7 + (inj.shinMax ?? 0), 1), basis: "data" },
+                        max: r(shinMed + 1.7 + injShinMax, 1), basis: "data" },
     overstrideRatio:  { target: r(overMed - 0.013, 3), min: r(overMed - 0.06, 3),
-                        max: r(overMed + 0.017 + (inj.overMax ?? 0), 3), basis: "data" },
+                        max: r(overMed + 0.017 + injOverMax, 3), basis: "data" },
     maxThighAngleDeg: { target: r(thigh), min: r(thigh - 6.5),
                         max: r(thigh + 7 + (inj.thighMax ?? 0)), basis: "data" },
-    torsoLeanDeg:     { target: r(torso, 1), min: 3, max: r(11 + (inj.torsoMax ?? 0), 1), basis: "lit" },
+    torsoLeanDeg:     { target: r(torso, 1), min: 3, max: r(11 + injTorsoMax, 1), basis: "lit" },
     elbowAngleDeg:    { target: 90, min: 75, max: 105, basis: "lit" },
     headOffsetRatio:  { target: 0, min: -0.03, max: r(0.06 + (inj.headMax ?? 0), 3), basis: "lit" },
+    // shortcut: fixed literature range (typical recreational 6–10 cm), not personalised; fit to data if one turns up.
+    verticalOscillationCm: { target: 8, min: 6, max: 10, basis: "lit" },
   };
 }

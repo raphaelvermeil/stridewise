@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { angleAt } from "./angles.ts";
 import { cadence, groundContacts } from "./cadence.ts";
-import { analyze } from "./index.ts";
+import { analyze, analyzeOverTime } from "./index.ts";
 
 const clip1 = JSON.parse(readFileSync("fixtures/landmarks/2026-11-21_session-1.json", "utf8"));
 const p = (x: number, y: number) => ({ x, y, z: 0, visibility: 1 });
@@ -37,4 +37,41 @@ test("analyze clip1 returns finite metrics", { skip: !clip1[0].aspect && "re-exp
   const m = analyze(clip1, 180); // TODO: real height of the clip1 runner
   for (const [k, v] of Object.entries(m)) assert.ok(Number.isFinite(v) && v !== 0, `${k} = ${v}`);
   assert.ok(Math.abs(m.cadenceSpm - 180) <= 5);
+});
+
+test("analyzeOverTime clip1: one smoothed point per step, consistent with analyze", () => {
+  const pts = analyzeOverTime(clip1, 180);
+  const m = analyze(clip1, 180);
+  assert.ok(Math.abs(pts.length - 61) <= 2, `points ${pts.length}`);
+  assert.ok(pts.every((p, i) => i === 0 || p.t > pts[i - 1].t), "time increases");
+  for (const k of Object.keys(m) as (keyof typeof m)[]) {
+    const vals = pts.map((p) => p[k]);
+    assert.ok(vals.every(Number.isFinite), `${k} finite`);
+    const med = [...vals].sort((a, b) => a - b)[Math.floor(vals.length / 2)];
+    assert.ok(Math.abs(med - m[k]) <= Math.abs(m[k]) * 0.15 + 1e-9, `${k}: series median ${med} vs analyze ${m[k]}`);
+  }
+});
+
+test("analyzeOverTime ignores a step with missing posture points (no drop to 0)", () => {
+  const steps = groundContacts(clip1);
+  const [a, b] = [steps[20].start, steps[21].start];
+  // Hide the near shoulder for one whole step.
+  const hidden = clip1.map((f: any, i: number) =>
+    i >= a && i < b ? { ...f, landmarks: f.landmarks.map((l: any, j: number) => (j === 11 ? { ...l, visibility: 0 } : l)) } : f,
+  );
+  const before = analyzeOverTime(clip1, 180)[20].torsoLeanDeg;
+  const after = analyzeOverTime(hidden, 180)[20].torsoLeanDeg;
+  assert.ok(Number.isFinite(after) && Math.abs(after - before) < 2, `torso ${before} -> ${after}`);
+});
+
+test("analyzeOverTime: one glitched step doesn't move the smoothed line", () => {
+  const steps = groundContacts(clip1);
+  const [a, b] = [steps[30].start, steps[31].start];
+  // Fling the near shoulder far forward for one step (fake 60°+ lean).
+  const glitch = clip1.map((f: any, i: number) =>
+    i >= a && i < b ? { ...f, landmarks: f.landmarks.map((l: any, j: number) => (j === 11 ? { ...l, x: l.x - 0.3 } : l)) } : f,
+  );
+  const before = analyzeOverTime(clip1, 180).map((p) => p.torsoLeanDeg);
+  const after = analyzeOverTime(glitch, 180).map((p) => p.torsoLeanDeg);
+  for (let i = 28; i <= 32; i++) assert.ok(Math.abs(after[i] - before[i]) < 2, `step ${i}: ${before[i]} -> ${after[i]}`);
 });

@@ -32,4 +32,7 @@ export type Session = {
 
 export type MetricKey = keyof SessionMetrics;
 
+/** One point on the end-of-session graph (Part 1 analyzeOverTime → Part 3 charts). t = landing time in ms. */
+export type MetricPoint = SessionMetrics & { t: number };
+
 export type Goal = { metric: MetricKey; min: number; max: number };
