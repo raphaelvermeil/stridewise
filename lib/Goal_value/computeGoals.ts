@@ -128,7 +128,9 @@ export function computeGoals(p: Runner): Goals {
   const thigh = 30.2 + 1.7 * dv;
 
   // ---- Torso lean, elbow, head: no public dataset; literature defaults ----
-  const torso = 7 + 0.3 * dv + (inj.torso ?? 0);
+  // Runners lean more as they speed up, so the whole range (not just the target) shifts with speed.
+  const torsoSpeed = 0.3 * dv;
+  const torso = 7 + torsoSpeed + (inj.torso ?? 0);
 
   return {
     cadenceSpm:       { target: r(cad), min: r(cad - 5), max: r(cad + 10), basis: "data+lit" },
@@ -139,7 +141,8 @@ export function computeGoals(p: Runner): Goals {
                         max: r(overMed + 0.017 + injOverMax, 3), basis: "data" },
     maxThighAngleDeg: { target: r(thigh), min: r(thigh - 6.5),
                         max: r(thigh + 7 + (inj.thighMax ?? 0)), basis: "data" },
-    torsoLeanDeg:     { target: r(torso, 1), min: 3, max: r(11 + injTorsoMax, 1), basis: "lit" },
+    torsoLeanDeg:     { target: r(torso, 1), min: r(3 + torsoSpeed, 1),
+                        max: r(11 + torsoSpeed + injTorsoMax, 1), basis: "lit" },
     elbowAngleDeg:    { target: 90, min: 75, max: 105, basis: "lit" },
     headOffsetRatio:  { target: 0, min: -0.03, max: r(0.06 + (inj.headMax ?? 0), 3), basis: "lit" },
     // shortcut: fixed literature range (typical recreational 6–10 cm), not personalised; fit to data if one turns up.
