@@ -55,7 +55,7 @@ export function cadence(frames: LandmarkFrame[]): { spm: number; contactFrames: 
 }
 
 /**
- * A foot is on the belt when it is near belt height AND the belt is carrying it backward.
+ * A foot is on the belt when it is near belt height AND the belt is carrying it backward AND it isn't lifting off.
  * Height alone is too noisy (foot y wobbles ~1% while planted).
  */
 export function groundContacts(frames: LandmarkFrame[]): Contact[] {
@@ -72,7 +72,9 @@ export function groundContacts(frames: LandmarkFrame[]): Contact[] {
     for (let i = 1; i < frames.length - 1; i++) {
       const low = footY(frames[i], leg) > belt - 0.12 * legLen;
       const backward = (footX[i + 1] - footX[i - 1]) * dir < 0;
-      if (!low || !backward) continue;
+      // Lift-off: belt height varies with perspective, so a rising toe can still look "low". Planted feet move <~3%/frame.
+      const rising = footY(frames[i - 1], leg) - footY(frames[i], leg) > 0.04 * legLen;
+      if (!low || !backward || rising) continue;
       // Gaps of 1–2 frames are heel-to-toe roll noise, not a new step.
       if (i - last > 3) {
         if (start >= 0) close();

@@ -19,6 +19,7 @@ export type SessionMetrics = {
   headOffsetRatio: number; // ear ahead of shoulder / torso length
   shinAngleDeg: number; // at foot contact, from vertical, + = ankle ahead of knee
   groundContactMs: number; // approximate: ±1 frame per step at 30 fps
+  verticalOscillationCm: number; // hip rise and fall per step, scaled by the runner's height
 };
 
 export type Session = {
