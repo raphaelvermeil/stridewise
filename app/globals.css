@@ -5,10 +5,11 @@
   --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 
   /* shortcut: placeholder palette picked from the design screenshots; swap in the final colours when they're chosen */
-  --color-bg: #f3e5f7; /* page background */
+  /* Neutral base (grey page, white cards, near-black ink) so lavender is only used as a highlight. */
+  --color-bg: #f4f4f6; /* page background */
   --color-surface: #ffffff; /* cards, inputs */
-  --color-ink: #1e1538; /* lavender-900: headings, primary text, primary buttons */
-  --color-muted: #5b5470; /* secondary text */
+  --color-ink: #17161f; /* headings, primary text, primary buttons */
+  --color-muted: #5f5e6b; /* secondary text */
   --color-accent: #cdbded; /* soft lavender: highlights, focus ring, logo mark */
 
   /* Corner radii: soft and round; controls are pills (rounded-full), cards are lg */
@@ -19,11 +20,11 @@
   --radius-xl: 28px;
   --radius-2xl: 40px;
 
-  /* Elevation: lavender-tinted, diffuse. No borders on cards. */
-  --shadow-xs: 0 1px 2px rgb(76 50 140 / 0.06);
-  --shadow-sm: 0 2px 8px rgb(76 50 140 / 0.08);
-  --shadow-md: 0 8px 24px rgb(76 50 140 / 0.1);
-  --shadow-lg: 0 16px 48px rgb(76 50 140 / 0.14);
+  /* Elevation: neutral, diffuse. No borders on cards. */
+  --shadow-xs: 0 1px 2px rgb(20 20 30 / 0.06);
+  --shadow-sm: 0 2px 8px rgb(20 20 30 / 0.07);
+  --shadow-md: 0 8px 24px rgb(20 20 30 / 0.09);
+  --shadow-lg: 0 16px 48px rgb(20 20 30 / 0.12);
   --shadow-focus: 0 0 0 4px var(--color-accent);
 
   /* Motion: ease-out for UI, spring for toggles/checks, in-out for page/scan transitions. Durations: 120 / 200 / 360 / 4000 (duration-200 etc.) */
@@ -31,6 +32,12 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --animate-breathe: breathe 4000ms var(--ease-in-out) infinite; /* countdown */
+  --animate-shake: shake 360ms var(--ease-out); /* wrong password */
+  @keyframes shake {
+    0%, 100% { translate: 0; }
+    20%, 60% { translate: -6px; }
+    40%, 80% { translate: 6px; }
+  }
   @keyframes breathe {
     0%, 100% { transform: scale(0.85); opacity: 0.6; }
     50% { transform: scale(1.1); opacity: 1; }
@@ -75,6 +82,16 @@
   --text-metric: 32px;
   --text-metric--line-height: 1;
   --text-metric--font-weight: 800;
+}
+
+/* Press feedback for every button: shrink slightly while held. Utility classes still win where a component sets its own. */
+@layer base {
+  button {
+    transition: scale 120ms var(--ease-out);
+  }
+  button:not(:disabled):active {
+    scale: 0.97;
+  }
 }
 
 body {

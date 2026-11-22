@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { getProfile } from "@/lib/db/profiles";
 import Logo from "@/components/Logo";
-import { btnPrimary, card, input, label } from "@/components/ui/styles";
+import { btnPrimary, card, input, inputInvalid, label, spinner } from "@/components/ui/styles";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +15,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [wrong, setWrong] = useState(false); // red outline on the password box, until they type again
+  const [shake, setShake] = useState(false); // on for one shake, so the next wrong try shakes again
 
   // /login?mode=signup opens on sign up (home page button). Read after mount so the static page needs no Suspense.
   useEffect(() => setSignUp(new URLSearchParams(location.search).get("mode") === "signup"), []);
@@ -38,7 +40,13 @@ export default function LoginPage() {
       ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${location.origin}/onboarding` } })
       : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return setMessage(error.message);
+    if (error) {
+      if (!signUp) {
+        setWrong(true);
+        setShake(true);
+      }
+      return setMessage(error.message);
+    }
     if (!data.session) return setMessage("Check your email and click the link to confirm your account. It opens the next step in a new tab, so you can close this one.");
     router.push(await nextPage());
   }
@@ -63,12 +71,15 @@ export default function LoginPage() {
         </label>
         <label className={label}>
           Password
-          <input className={input} type="password" required minLength={6}
+          <input type="password" required minLength={6}
+            className={`${input} ${wrong ? inputInvalid : ""} ${shake ? "animate-shake" : ""}`}
+            aria-invalid={wrong}
+            onAnimationEnd={() => setShake(false)}
             autoComplete={signUp ? "new-password" : "current-password"}
-            value={password} onChange={(e) => setPassword(e.target.value)} />
+            value={password} onChange={(e) => { setPassword(e.target.value); setWrong(false); }} />
         </label>
         <button className={`${btnPrimary} mt-2`} disabled={busy}>
-          {busy ? "…" : title}
+          {busy ? <span className={`${spinner} size-5`} aria-label="Loading" /> : title}
         </button>
         {message && <p role="alert" className="text-body-sm text-muted">{message}</p>}
       </form>

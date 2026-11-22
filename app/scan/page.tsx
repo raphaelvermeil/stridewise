@@ -121,7 +121,8 @@ export default function ScanPage() {
           )}
 
           {stream && !speedConfirmed && (
-            <form onSubmit={(e) => { e.preventDefault(); setSpeedConfirmed(true); }}
+            // noValidate: the browser would reject 10.3 for not matching the 0.5 arrow steps; SpeedInput checks the range itself.
+            <form noValidate onSubmit={(e) => { e.preventDefault(); setSpeedConfirmed(true); }}
               className={`${card} absolute top-1/2 left-1/2 flex w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col gap-4`}>
               <SpeedInput onChange={setSpeedKmh} />
               <button className={btnPrimary} disabled={speedKmh === null}>Continue</button>
@@ -162,7 +163,7 @@ export default function ScanPage() {
         </div>
       )}
 
-      {helpOpen && <ScanHelp onClose={closeHelp} />}
+      {helpOpen && <ScanHelp onClose={closeHelp} first={!started} />}
     </main>
   );
 }

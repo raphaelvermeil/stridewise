@@ -8,7 +8,7 @@ import { listSessions } from "@/lib/db/sessions";
 import { METRIC_LABELS, goalsMet, shortDate } from "@/lib/metrics/labels";
 import MetricChart from "@/components/dashboard/MetricChart";
 import SessionList from "@/components/dashboard/SessionList";
-import { btnPrimary, card } from "@/components/ui/styles";
+import { btnPrimary, card, spinner } from "@/components/ui/styles";
 import type { Goal, MetricKey, Session } from "@/lib/types";
 
 const WEEK_MS = 7 * 24 * 3600 * 1000;
@@ -51,6 +51,7 @@ export default function DashboardPage() {
       </div>
 
       {error && <p role="alert" className="text-muted">{error}</p>}
+      {sessions === null && !error && <div className="grid place-items-center py-24"><span aria-label="Loading" className={`${spinner} size-8`} /></div>}
 
       {sessions?.length === 0 && (
         <section className={`${card} py-12 text-center`}>

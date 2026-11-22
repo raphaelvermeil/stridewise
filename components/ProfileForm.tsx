@@ -3,7 +3,7 @@
 
 import { useState, type FormEvent } from "react";
 import { saveProfile, type Profile } from "@/lib/db/profiles";
-import { btnPrimary, card, input, label } from "@/components/ui/styles";
+import { btnPrimary, card, input, label, spinner } from "@/components/ui/styles";
 import type { Fitness, Injury, Sex } from "@/lib/Goal_value/computeGoals";
 
 // Keys match computeGoals' Injury type, which adjusts goals for each one.
@@ -98,7 +98,7 @@ export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
         </div>
       </fieldset>
       <button className={`${btnPrimary} mt-2`} disabled={busy}>
-        {busy ? "Saving…" : submitLabel}
+        {busy ? <><span aria-hidden className={`${spinner} mr-2 size-4`} />Saving…</> : submitLabel}
       </button>
       {error && <p role="alert" className="text-body-sm text-muted">{error}</p>}
     </form>

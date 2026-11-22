@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { input } from "@/components/ui/styles";
-import { asKmh, format, fromKmh, isPace, parse, rangeText, toKmh, UNIT_LABELS, type SpeedUnit } from "@/lib/speed";
+import { input, inputInvalid } from "@/components/ui/styles";
+import { asKmh, format, fromKmh, isPace, limits, parse, rangeText, toKmh, UNIT_LABELS, type SpeedUnit } from "@/lib/speed";
 
 export default function SpeedInput({ onChange }: { onChange: (kmh: number | null) => void }) {
   const [text, setText] = useState("");
@@ -12,6 +12,8 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
   const pace = isPace(unit);
   const invalid = text !== "" && toKmh(text, unit) === null;
   const range = `${rangeText(unit)} ${UNIT_LABELS[unit]}`;
+  // The arrows step by 0.5 and stop at the range ends (rounded inward to a 0.5, e.g. mph: 2–15.5). Paces have no arrows.
+  const [lo, hi] = limits(unit);
 
   function update(nextText: string, nextUnit: SpeedUnit) {
     setText(nextText);
@@ -36,12 +38,14 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
           type={pace ? "text" : "number"}
           inputMode={pace ? "text" : "decimal"}
           step={pace ? undefined : 0.5}
+          min={pace ? undefined : Math.ceil(lo * 2) / 2}
+          max={pace ? undefined : Math.floor(hi * 2) / 2}
           placeholder={pace ? "5:30" : "10"}
           value={text}
           onChange={(e) => update(e.target.value, unit)}
           aria-invalid={invalid}
           aria-describedby="speed-hint"
-          className={`${input} w-28`}
+          className={`${input} ${invalid ? inputInvalid : ""} w-28`}
         />
         <select
           aria-label="Speed unit"

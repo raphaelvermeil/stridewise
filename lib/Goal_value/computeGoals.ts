@@ -61,7 +61,7 @@ const DEFAULT_EASY_KMH: Record<Fitness, number> = {
 };
 
 /** Prescriptive adjustments [lit]. */
-const INJURY: Record<Injury, Partial<{
+export const INJURY: Record<Injury, Partial<{
   cad: number; gct: number; thighMax: number; overMax: number;
   shinMax: number; torso: number; torsoMax: number; headMax: number;
 }>> = {

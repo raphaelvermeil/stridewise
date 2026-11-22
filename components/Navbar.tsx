@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
 
-const item = "block w-full rounded-sm px-3 py-2 text-left hover:bg-bg";
+const item = "block w-full rounded-sm px-3 py-2 text-left transition duration-200 ease-out hover:bg-bg active:scale-[0.97]";
 
 export default function Navbar() {
   const router = useRouter();

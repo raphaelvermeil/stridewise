@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getProfile, type Profile } from "@/lib/db/profiles";
 import ProfileForm from "@/components/ProfileForm";
 import GoalEditor from "@/components/dashboard/GoalEditor";
+import { spinner } from "@/components/ui/styles";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -21,6 +22,7 @@ export default function ProfilePage() {
       <section>
         <h1 className="text-h1">Profile</h1>
         <p className="mt-2 mb-8 text-body-lg text-muted">Your details shape the goals suggested for you.</p>
+        {!profile && <div className="grid place-items-center py-24"><span aria-label="Loading" className={`${spinner} size-8`} /></div>}
         {profile && (
           <ProfileForm initial={profile} submitLabel="Save details" onSaved={() => { setSaved(true); load(); }} />
         )}
