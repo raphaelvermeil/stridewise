@@ -9,6 +9,7 @@ import CameraCheck from "@/components/scan/CameraCheck";
 import SpeedInput from "@/components/scan/SpeedInput";
 import Recorder from "@/components/scan/Recorder";
 import ScanHelp from "@/components/scan/ScanHelp";
+import { say } from "@/lib/voice";
 import { analyze } from "@/lib/metrics";
 import { getGoals, getProfile, goalsFor, scoreFor } from "@/lib/db/profiles";
 import { saveScan } from "@/lib/db/sessions";
@@ -38,6 +39,7 @@ export default function ScanPage() {
     const { video, frames } = take.current!;
     setSaving(true);
     setSaveError(null);
+    say("Saving your scan.");
     try {
       const [profile, saved] = await Promise.all([getProfile(), getGoals()]);
       if (!profile) throw new Error("finish onboarding first (your height is needed for the metrics)");
@@ -49,6 +51,7 @@ export default function ScanPage() {
       router.push(`/results/${session.id}`);
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : String(e));
+      say("Could not save the scan. Check the screen for details.");
     }
   }, [router]);
 

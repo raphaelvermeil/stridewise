@@ -49,7 +49,11 @@ export async function saveScan(s: {
   const userId = auth.session.user.id;
   const id = crypto.randomUUID();
   const ext = s.video.type.includes("mp4") ? "mp4" : "webm"; // Safari records mp4, Chrome/Firefox webm
-  const videoPath = `${userId}/${id}.${ext}`;
+  // Readable name, e.g. {userId}/2026-11-21_14-32-05_10kmh.webm. The folder must stay the user id (storage policy).
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const when = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}-${pad(d.getMinutes())}-${pad(d.getSeconds())}`;
+  const videoPath = `${userId}/${when}_${s.treadmillSpeedKmh}kmh.${ext}`;
 
   // A 30 s take is ~900 frames (~4 MB of JSON), enough to hit Supabase's 8 s statement timeout on a cold insert.
   // Rounding to 4 decimals (~0.1 px) makes it ~60% smaller without changing any metric.
