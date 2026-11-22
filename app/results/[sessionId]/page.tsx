@@ -65,35 +65,32 @@ export default function ResultsPage() {
 
       {session && (
         <>
-          {score && (
-            <section className={`${card} flex flex-wrap items-center gap-x-10 gap-y-4`}>
-              <div>
-                <p className="text-body-sm text-muted">Form score</p>
-                <p className="tabular-nums"><span className="text-metric-xl">{session.score ?? score.score}</span><span className="ml-1 text-h3">/ 100</span></p>
-              </div>
-              <div className="max-w-md">
-                <p>Weighted toward the metrics most linked to injury, at the speed you ran.</p>
-                {gains.length > 0 && (
-                  <p className="mt-1 text-muted">Most points to gain: {gains.map((g) => METRIC_LABELS[g.metric].name).join(" and ")}.</p>
-                )}
-              </div>
-            </section>
-          )}
-
-          <div className="grid items-start gap-8 lg:grid-cols-2">
-            <section>
-              <h2 className="mb-6 text-h2">Your run</h2>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-2">
               {videoUrl ? (
                 <AnnotatedPlayback src={videoUrl} />
               ) : (
-                <p className="text-muted">{session.videoPath ? "Loading video…" : "No video was saved for this scan."}</p>
+                <div className={`${card} grid aspect-video place-items-center text-muted`}>
+                  {session.videoPath ? "Loading video…" : "No video was saved for this scan."}
+                </div>
               )}
-            </section>
-            <section>
-              <h2 className="mb-6 text-h2">What to work on</h2>
-              <Recommendations items={recommend(session.metrics, goals)} />
-            </section>
+            </div>
+            {score && (
+              <section className={`${card} flex flex-col gap-3`}>
+                <p className="text-body-sm text-muted">Form score</p>
+                <p className="tabular-nums"><span className="text-metric-xl">{session.score ?? score.score}</span><span className="ml-1 text-h3">/ 100</span></p>
+                <p>Weighted toward the metrics most linked to injury, at the speed you ran.</p>
+                {gains.length > 0 && (
+                  <p className="text-muted">Most points to gain: {gains.map((g) => METRIC_LABELS[g.metric].name).join(" and ")}.</p>
+                )}
+              </section>
+            )}
           </div>
+
+          <section>
+            <h2 className="mb-6 text-h2">What to work on</h2>
+            <Recommendations items={recommend(session.metrics, goals)} />
+          </section>
 
           {points && points.length > 0 && (
             <section>

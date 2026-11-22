@@ -13,7 +13,7 @@ export default function Recommendations({ items }: { items: Recommendation[] }) 
     );
   }
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((r) => (
         <article key={r.metric} className={card}>
           <h3 className="text-h3">{METRIC_LABELS[r.metric].name}</h3>

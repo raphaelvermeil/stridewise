@@ -70,6 +70,9 @@ const INJURY: Record<Injury, Partial<{
   lowBack:        { torso: -1, torsoMax: -2, headMax: -0.02 },
 };
 
+/** True for the injury keys this model knows. Guards data read from the database. */
+export const isInjury = (s: string): s is Injury => Object.hasOwn(INJURY, s);
+
 export function computeGoals(p: Runner): Goals {
   const kmh = p.speedKmh ?? DEFAULT_EASY_KMH[p.fitness];
   const dv = kmh - 10;

@@ -51,6 +51,15 @@ export async function saveScan(s: {
   const ext = s.video.type.includes("mp4") ? "mp4" : "webm"; // Safari records mp4, Chrome/Firefox webm
   const videoPath = `${userId}/${id}.${ext}`;
 
+  // A 30 s take is ~900 frames (~4 MB of JSON), enough to hit Supabase's 8 s statement timeout on a cold insert.
+  // Rounding to 4 decimals (~0.1 px) makes it ~60% smaller without changing any metric.
+  const r4 = (v: number) => Math.round(v * 1e4) / 1e4;
+  const landmarks = s.landmarks.map((f) => ({
+    t: Math.round(f.t),
+    aspect: r4(f.aspect),
+    landmarks: f.landmarks.map((l) => ({ x: r4(l.x), y: r4(l.y), z: r4(l.z), visibility: r4(l.visibility) })),
+  }));
+
   const upload = await supabase.storage.from("scans").upload(videoPath, s.video, { contentType: s.video.type });
   if (upload.error) throw upload.error;
 
@@ -62,7 +71,7 @@ export async function saveScan(s: {
       treadmill_speed_kmh: s.treadmillSpeedKmh,
       metrics: s.metrics,
       score: s.score,
-      landmarks: s.landmarks,
+      landmarks,
       video_path: videoPath,
     })
     .select(COLUMNS)

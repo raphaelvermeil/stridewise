@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Goal, MetricKey, Session } from "@/lib/types";
 import { scoreRun } from "@/lib/Goal_value/scoreRun";
-import { computeGoals, type Fitness, type Injury, type Runner, type Sex } from "@/lib/Goal_value/computeGoals";
+import { computeGoals, isInjury, type Fitness, type Injury, type Runner, type Sex } from "@/lib/Goal_value/computeGoals";
 
 export type Profile = {
   sex: Sex;
@@ -42,7 +42,7 @@ export async function getProfile(): Promise<Profile | null> {
       weightKg: Number(data.weight_kg),
       experience: data.experience,
       runsPerWeek: data.runs_per_week,
-      injuryHistory: data.injury_history,
+      injuryHistory: (data.injury_history as string[]).filter(isInjury), // older rows can hold free-text injuries
     }
   );
 }
