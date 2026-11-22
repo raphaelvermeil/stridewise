@@ -14,7 +14,7 @@ export default function Logo({ href, large = false }: { href: string; large?: bo
           {BONES.map((p) => <polyline key={p} points={p} />)}
         </g>
         <circle cx="57" cy="19" r="8" className="fill-brand" />
-        {JOINTS.map(([x, y]) => <circle key={`${x},${y}`} cx={x} cy={y} r={4.2} className="fill-joint" />)}
+        {JOINTS.map(([x, y]) => <circle key={`${x},${y}`} cx={x} cy={y} r={3.4} className="fill-joint" />)}
       </svg>
       <span translate="no">StrideWise</span>
     </Link>
