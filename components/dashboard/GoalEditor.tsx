@@ -3,7 +3,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { getGoals, goalsFor, saveGoals, type Profile } from "@/lib/db/profiles";
-import { METRIC_LABELS } from "@/lib/metrics/labels";
+import { METRIC_LABELS, displayValue, storedValue } from "@/lib/metrics/labels";
 import { btnPrimary, card, input } from "@/components/ui/styles";
 import type { Goal } from "@/lib/types";
 
@@ -21,9 +21,9 @@ export default function GoalEditor({ profile }: { profile: Profile }) {
     const f = new FormData(e.currentTarget);
     const next = goals!.map(({ metric }) => ({
       metric,
-      min: Number(f.get(`${metric}.min`)),
-      target: Number(f.get(`${metric}.target`)),
-      max: Number(f.get(`${metric}.max`)),
+      min: storedValue(metric, Number(f.get(`${metric}.min`)), profile.heightCm),
+      target: storedValue(metric, Number(f.get(`${metric}.target`)), profile.heightCm),
+      max: storedValue(metric, Number(f.get(`${metric}.max`)), profile.heightCm),
     }));
     const bad = next.find((g) => !(g.min <= g.target && g.target <= g.max));
     if (bad) return setMessage(`${METRIC_LABELS[bad.metric].name}: min ≤ target ≤ max.`);
@@ -54,7 +54,7 @@ export default function GoalEditor({ profile }: { profile: Profile }) {
             </span>
             {(["min", "target", "max"] as const).map((k) => (
               <input key={k} className={`${input} w-full min-w-0`} name={`${g.metric}.${k}`} type="number" step="any" required
-                defaultValue={g[k]} aria-label={`${METRIC_LABELS[g.metric].name} ${k}`} />
+                defaultValue={g[k] == null ? undefined : Math.round(displayValue(g.metric, g[k], profile.heightCm) * 10) / 10} aria-label={`${METRIC_LABELS[g.metric].name} ${k}`} />
             ))}
           </div>
         ))}

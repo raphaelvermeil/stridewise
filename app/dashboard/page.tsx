@@ -94,7 +94,7 @@ export default function DashboardPage() {
             <h2 className="mb-6 text-h2">Metrics over time</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {(Object.keys(METRIC_LABELS) as MetricKey[]).map((m) => (
-                <MetricChart key={m} metric={m} sessions={sessions!} goal={goals.find((g) => g.metric === m)} />
+                <MetricChart key={m} metric={m} sessions={sessions!} goal={goals.find((g) => g.metric === m)} heightCm={profile?.heightCm ?? 170} />
               ))}
             </div>
           </section>

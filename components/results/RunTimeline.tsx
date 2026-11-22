@@ -3,18 +3,19 @@
 
 import { useState } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { METRIC_LABELS, formatMetric } from "@/lib/metrics/labels";
+import { METRIC_LABELS, displayGoal, displayValue, formatMetric } from "@/lib/metrics/labels";
 import { card } from "@/components/ui/styles";
 import type { Goal, MetricKey, MetricPoint } from "@/lib/types";
 
 const axis = { tickLine: false, axisLine: false, fontSize: 12, stroke: "var(--color-muted)" };
 
-export default function RunTimeline({ points, goals }: { points: MetricPoint[]; goals: Goal[] }) {
+export default function RunTimeline({ points, goals, heightCm }: { points: MetricPoint[]; goals: Goal[]; heightCm: number }) {
   const [metric, setMetric] = useState<MetricKey>("cadenceSpm");
   const { name, unit } = METRIC_LABELS[metric];
-  const goal = goals.find((g) => g.metric === metric);
+  const stored = goals.find((g) => g.metric === metric);
+  const goal = stored && displayGoal(stored, heightCm);
   // NaN = no data around that step; null makes Recharts draw a gap.
-  const data = points.map((p) => ({ s: p.t / 1000, value: Number.isFinite(p[metric]) ? p[metric] : null }));
+  const data = points.map((p) => ({ s: p.t / 1000, value: Number.isFinite(p[metric]) ? displayValue(metric, p[metric], heightCm) : null }));
 
   return (
     <section className={`${card} flex flex-col gap-5`}>
@@ -31,11 +32,11 @@ export default function RunTimeline({ points, goals }: { points: MetricPoint[]; 
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
             <CartesianGrid vertical={false} stroke="var(--color-bg)" />
             <XAxis dataKey="s" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(s: number) => `${Math.round(s)} s`} {...axis} />
-            <YAxis domain={["auto", "auto"]} width={48} tickFormatter={(v: number) => formatMetric(metric, v)} {...axis} />
+            <YAxis domain={["auto", "auto"]} width={48} tickFormatter={(v: number) => formatMetric(v)} {...axis} />
             {goal && <ReferenceArea y1={goal.min} y2={goal.max} ifOverflow="extendDomain" fill="var(--color-accent)" fillOpacity={0.35} stroke="none" />}
             <Tooltip
               labelFormatter={(s) => `${Number(s).toFixed(1)} s into the run`}
-              formatter={(v) => [`${formatMetric(metric, Number(v))} ${unit}`, name]}
+              formatter={(v) => [`${formatMetric(Number(v))} ${unit}`, name]}
               contentStyle={{ border: "none", borderRadius: 10, boxShadow: "var(--shadow-md)" }}
             />
             <Line dataKey="value" stroke="var(--color-ink)" strokeWidth={2} dot={false} activeDot={{ r: 5 }} isAnimationActive={false} />
@@ -43,7 +44,7 @@ export default function RunTimeline({ points, goals }: { points: MetricPoint[]; 
         </ResponsiveContainer>
       </div>
       <p className="text-body-sm text-muted">
-        {name}, step by step (smoothed over 5 steps).{goal && ` Shaded band: your goal, ${formatMetric(metric, goal.min)}–${formatMetric(metric, goal.max)} ${unit}.`}
+        {name}, step by step (smoothed over 5 steps).{goal && ` Shaded band: your goal, ${formatMetric(goal.min)}–${formatMetric(goal.max)} ${unit}.`}
       </p>
     </section>
   );

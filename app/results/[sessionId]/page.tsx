@@ -95,7 +95,7 @@ export default function ResultsPage() {
           {points && points.length > 0 && (
             <section>
               <h2 className="mb-6 text-h2">During this run</h2>
-              <RunTimeline points={points} goals={goals} />
+              <RunTimeline points={points} goals={goals} heightCm={profile!.heightCm} />
             </section>
           )}
 
@@ -103,7 +103,7 @@ export default function ResultsPage() {
             <h2 className="mb-6 text-h2">All metrics</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {metrics!.map((m) => (
-                <MetricCard key={m} metric={m} value={session.metrics[m]} goal={goals.find((g) => g.metric === m)} />
+                <MetricCard key={m} metric={m} value={session.metrics[m]} goal={goals.find((g) => g.metric === m)} heightCm={profile?.heightCm ?? 170} />
               ))}
             </div>
           </section>

@@ -7,9 +7,19 @@ import { verticalOscillation } from "./oscillation.ts";
 
 const SMOOTH_STEPS = 5;
 
-/** Scale x by width/height so x and y are the same units and angles come out true. */
-const toSquareUnits = (frames: LandmarkFrame[]) =>
-  frames.map((fr) => ({ ...fr, landmarks: fr.landmarks.map((l) => ({ ...l, x: l.x * fr.aspect })) }));
+const FRAME_MS = 1000 / 30;
+
+/**
+ * 1. Keep at most one frame per 30 fps slot: the metrics count gaps and smoothing in frames, tuned at 30 fps.
+ *    Live /scan frames arrive at the screen's refresh rate (60–120 Hz, mostly repeats of one camera frame),
+ *    which made every wobble a new "step" (cadence 400–600). Slower sources pass through unchanged.
+ * 2. Scale x by width/height so x and y are the same units and angles come out true.
+ */
+function toSquareUnits(frames: LandmarkFrame[]) {
+  const kept: LandmarkFrame[] = [];
+  for (const fr of frames) if (!kept.length || fr.t - kept[kept.length - 1].t >= FRAME_MS * 0.9) kept.push(fr);
+  return kept.map((fr) => ({ ...fr, landmarks: fr.landmarks.map((l) => ({ ...l, x: l.x * fr.aspect })) }));
+}
 
 /** heightCm: the runner's height from their profile, used to turn image distances into cm. */
 export function analyze(frames: LandmarkFrame[], heightCm: number): SessionMetrics {

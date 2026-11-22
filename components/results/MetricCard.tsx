@@ -1,12 +1,17 @@
 // Part 3: one metric: value, goal range, good/needs work
-import { METRIC_LABELS, formatMetric, inGoal } from "@/lib/metrics/labels";
+import { METRIC_LABELS, displayGoal, displayValue, formatMetric, inGoal } from "@/lib/metrics/labels";
 import { card } from "@/components/ui/styles";
 import GoalBadge from "@/components/ui/GoalBadge";
 import type { Goal, MetricKey } from "@/lib/types";
 
-export default function MetricCard({ metric, value, goal }: { metric: MetricKey; value: number; goal?: Goal }) {
+type Props = { metric: MetricKey; value: number; goal?: Goal; heightCm: number }; // value and goal as stored
+
+export default function MetricCard({ metric, value: stored, goal: storedGoal, heightCm }: Props) {
   const { name, unit } = METRIC_LABELS[metric];
-  const fmt = (v: number) => formatMetric(metric, v);
+  const fmt = formatMetric;
+  const ok = storedGoal && inGoal(stored, storedGoal);
+  const value = displayValue(metric, stored, heightCm);
+  const goal = storedGoal && displayGoal(storedGoal, heightCm);
 
   // Gauge scale: the goal band and the value, with some room either side.
   const lo = Math.min(goal?.min ?? value, value);
@@ -18,7 +23,7 @@ export default function MetricCard({ metric, value, goal }: { metric: MetricKey;
     <section className={`${card} flex flex-col gap-4`}>
       <div className="flex items-start justify-between gap-3">
         <h3 className="text-h4">{name}</h3>
-        {goal && <GoalBadge ok={inGoal(value, goal)} />}
+        {goal && <GoalBadge ok={!!ok} />}
       </div>
       <p className="tabular-nums">
         <span className="text-metric-lg">{fmt(value)}</span>
