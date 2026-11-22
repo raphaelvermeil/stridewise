@@ -91,3 +91,10 @@ test("frames at 60/120 Hz give the same results as 30 fps", () => {
     assert.ok(series.every((p) => p.cadenceSpm < 260), `${hz} Hz graph cadence max ${Math.max(...series.map((p) => p.cadenceSpm))}`);
   }
 });
+
+test("graph cadence = steps ÷ time over 10 steps: steady on clip1", () => {
+  const series = analyzeOverTime(clip1, 180).map((p) => p.cadenceSpm);
+  const base = analyze(clip1, 180).cadenceSpm;
+  // Away from the edges every point is within 10% of the session cadence: one stray landing in 10 steps.
+  for (const v of series.slice(5, -5)) assert.ok(Math.abs(v - base) / base <= 0.1, `graph ${v.toFixed(0)} vs session ${base}`);
+});

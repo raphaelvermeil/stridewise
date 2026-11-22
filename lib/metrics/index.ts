@@ -6,6 +6,7 @@ import { elbowAngle, headOffset, maxThighAngle, torsoLean } from "./angles.ts";
 import { verticalOscillation } from "./oscillation.ts";
 
 const SMOOTH_STEPS = 5;
+const CADENCE_STEPS = 10;
 
 const FRAME_MS = 1000 / 30;
 
@@ -41,8 +42,8 @@ export function analyze(frames: LandmarkFrame[], heightCm: number): SessionMetri
 }
 
 /**
- * Every metric once per step (landing to next landing), smoothed with a 5-step rolling median,
- * for the end-of-session graph. Same calculations as analyze(), just applied one step at a time.
+ * Every metric once per step (landing to next landing), for the end-of-session graph.
+ * Cadence: steps ÷ time over 10 steps. Others: same calculations as analyze() per step, 5-step rolling median.
  */
 export function analyzeOverTime(frames: LandmarkFrame[], heightCm: number): MetricPoint[] {
   const f = toSquareUnits(frames);
@@ -53,7 +54,7 @@ export function analyzeOverTime(frames: LandmarkFrame[], heightCm: number): Metr
     const step = f.slice(c.start, next.start);
     return [{
       t: f[c.start].t,
-      cadenceSpm: 60000 / (f[next.start].t - f[c.start].t),
+      cadenceSpm: NaN, // filled below from a 10-step window
       maxThighAngleDeg: maxThighAngle(f, [c, next]),
       overstrideRatio: overstride(f, [c]),
       torsoLeanDeg: torsoLean(step),
@@ -65,14 +66,23 @@ export function analyzeOverTime(frames: LandmarkFrame[], heightCm: number): Metr
     }];
   });
 
-  // Centered rolling median: ignores up to 2 glitched steps out of 5, and skips steps with no value (NaN).
-  // Fewer steps are used at the start and end.
+  // Cadence = steps ÷ time over a centered 10-step window. One extra or missed landing shifts it ~10%,
+  // where the per-step value (60000 / one gap) would spike to 400–600. Fewer steps at the start and end.
+  const landings = [...steps.map((s) => s.t), f[contacts[contacts.length - 1].start].t];
+  const cadenceAt = (i: number) => {
+    const a = Math.max(0, i - CADENCE_STEPS / 2);
+    const b = Math.min(landings.length - 1, i + CADENCE_STEPS / 2);
+    return ((b - a) * 60000) / (landings[b] - landings[a]);
+  };
+
+  // Other metrics: centered rolling median, ignores up to 2 glitched steps out of 5 and skips steps with
+  // no value (NaN). Fewer steps are used at the start and end.
   const half = Math.floor(SMOOTH_STEPS / 2);
   return steps.map((s, i) => {
     const near = steps.slice(Math.max(0, i - half), i + half + 1);
-    const out = { ...s };
+    const out = { ...s, cadenceSpm: cadenceAt(i) };
     for (const k of Object.keys(s) as (MetricKey | "t")[]) {
-      if (k === "t") continue;
+      if (k === "t" || k === "cadenceSpm") continue;
       const vals = near.map((p) => p[k]).filter(Number.isFinite);
       out[k] = vals.length ? median(vals) : NaN; // NaN = no data around this step → gap in the graph
     }
