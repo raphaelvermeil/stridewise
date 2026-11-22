@@ -75,3 +75,19 @@ test("analyzeOverTime: one glitched step doesn't move the smoothed line", () => 
   const after = analyzeOverTime(glitch, 180).map((p) => p.torsoLeanDeg);
   for (let i = 28; i <= 32; i++) assert.ok(Math.abs(after[i] - before[i]) < 2, `step ${i}: ${before[i]} -> ${after[i]}`);
 });
+
+// /scan collects live frames at the screen's refresh rate (60–120 Hz), mostly repeats of one camera frame.
+test("frames at 60/120 Hz give the same results as 30 fps", () => {
+  const base = analyze(clip1, 180);
+  const baseSeries = analyzeOverTime(clip1, 180);
+  for (const hz of [60, 120]) {
+    const k = hz / 30;
+    const up = clip1.flatMap((f: any) => Array.from({ length: k }, (_, j) => ({ ...f, t: f.t + (j * 1000) / hz })));
+    const m = analyze(up, 180);
+    assert.equal(m.cadenceSpm, base.cadenceSpm, `${hz} Hz cadence`);
+    assert.equal(m.groundContactMs, base.groundContactMs, `${hz} Hz contact`);
+    const series = analyzeOverTime(up, 180);
+    assert.equal(series.length, baseSeries.length, `${hz} Hz graph points`);
+    assert.ok(series.every((p) => p.cadenceSpm < 260), `${hz} Hz graph cadence max ${Math.max(...series.map((p) => p.cadenceSpm))}`);
+  }
+});
