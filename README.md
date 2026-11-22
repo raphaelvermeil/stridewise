@@ -19,8 +19,8 @@ In Supabase, run `supabase/schema.sql` then `supabase/policies.sql` in the SQL e
 | `lib/types.ts` | both | everyone | The two shared formats: landmark frames and the session record. Change only as a team. |
 | `lib/pose/` | browser | Part 1 | MediaPipe setup, video → landmark frames, camera check |
 | `lib/metrics/` | browser | Part 1 | Landmark frames → cadence, angles, overstride. `analyze()` is the entry point. |
-| `app/scan/`, `components/scan/`, `lib/voice.ts` | browser | Part 2 | Camera check, recording, upload, skeleton overlay, voice prompts |
-| `app/results/`, `app/my-data/`, `app/goals/`, `components/results/`, `components/dashboard/` | browser | Part 3 | Results screen, charts, goal editing |
+| `app/scan/`, `components/scan/`, `lib/voice.ts` | browser | Part 2 | Setup help, camera check, recording, skeleton overlay, voice prompts |
+| `app/results/`, `app/dashboard/`, `app/profile/`, `components/results/`, `components/dashboard/` | browser | Part 3 | Results screen, charts, goal editing |
 | `app/(auth)/`, `app/onboarding/`, `lib/db/`, `lib/supabase/`, `lib/recommendations/`, `supabase/` | browser + database | Part 4 | Auth, onboarding, all database queries, recommendation rules, schema |
 | `app/api/` | server | Part 4 | Express-style endpoints, only for things needing a secret key (LLM explanations) |
 | `fixtures/clips/` | – | everyone | Recorded treadmill videos (git-ignored, share via Drive) |

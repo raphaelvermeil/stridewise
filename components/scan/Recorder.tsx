@@ -107,17 +107,33 @@ export default function Recorder({ ready, stream, frame, onDone }: Props) {
   }, [phase, stream, onDone]);
 
   return (
-    <div aria-live="polite" className="text-lg">
-      {phase === "waiting" && disrupted && (
-        <p className="font-semibold text-red-600">Recording disrupted. Get back into position and it will restart.</p>
+    <div aria-live="polite">
+      {phase === "waiting" && (
+        <p className={`absolute top-6 left-1/2 w-[min(32rem,calc(100vw-9rem))] -translate-x-1/2 rounded-lg px-5 py-3 text-center font-medium shadow-md ${disrupted ? "bg-ink text-white" : "bg-surface"}`}>
+          {disrupted
+            ? "Recording disrupted. Get back into position and it will restart."
+            : "Get into position. Recording starts automatically once every check passes."}
+        </p>
       )}
-      {phase === "waiting" && !disrupted && (
-        <p className="text-gray-600">Enter your speed and get into position. Recording starts automatically once every check passes.</p>
+      {phase === "countdown" && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <div className="relative grid size-72 place-items-center">
+            <span aria-hidden className="absolute inset-0 rounded-full bg-accent/30 motion-safe:animate-breathe" />
+            <span className="relative text-[10rem] leading-none font-extrabold text-white tabular-nums drop-shadow-lg">{secondsLeft}</span>
+          </div>
+          <p className="absolute top-[calc(50%+10rem)] text-h3 text-white drop-shadow">Start the treadmill</p>
+        </div>
       )}
-      {phase === "announcing" && <p className="font-semibold">Position reached. Start the treadmill…</p>}
-      {phase === "countdown" && <p className="font-semibold">Recording in {secondsLeft}…</p>}
-      {phase === "recording" && <p className="font-semibold text-red-600">● Recording… {secondsLeft} s left</p>}
-      {phase === "done" && <p className="font-semibold text-green-600">✓ Recording complete.</p>}
+      {phase === "announcing" && (
+        <p className="absolute top-6 left-1/2 w-[min(32rem,calc(100vw-9rem))] -translate-x-1/2 rounded-lg bg-surface px-5 py-3 text-center font-medium shadow-md">
+          Position reached. Start the treadmill…
+        </p>
+      )}
+      {phase === "recording" && (
+        <p className="absolute top-6 left-1/2 -translate-x-1/2 rounded-full bg-surface px-5 py-2 font-bold tabular-nums shadow-md">
+          <span className="text-red-600">●</span> Recording · {secondsLeft} s left
+        </p>
+      )}
     </div>
   );
 }
