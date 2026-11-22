@@ -45,6 +45,13 @@ export type Goals = Record<MetricKey, Range>;
 const r = (v: number, d = 0) => Math.round(v * 10 ** d) / 10 ** d;
 
 /**
+ * Calibration, not physiology: our 30 fps video detection reads ground contact longer than a force plate
+ * (session-1: 333 ms measured vs ~300 ms hand-counted; other clips worse). Shifts the whole GCT goal up to match.
+ * shortcut: one fixed offset for every runner and speed; remove it once contact detection is tuned (lib/metrics/cadence.ts).
+ */
+const GCT_MEASUREMENT_BIAS_MS = 60;
+
+/**
  * Fitness has no effect on cadence or GCT once speed is accounted for
  * (RIC: competitive vs recreational, p > 0.19). It is only used to guess an
  * easy-pace speed when none is given.
@@ -113,7 +120,8 @@ export function computeGoals(p: Runner): Goals {
     + 1.1 * (p.heightCm - 177)
     + 2.35 * (bmi - 22)
     + 14 * female                // RIC p < 0.001; not significant in the smaller FUK sample
-    + (inj.gct ?? 0);
+    + (inj.gct ?? 0)
+    + GCT_MEASUREMENT_BIAS_MS;
 
   // ---- Shin angle at touchdown (FUK) ----
   // Median 7.2° at 10 km/h, +0.66° per km/h. Target = 25th percentile, max = 75th.

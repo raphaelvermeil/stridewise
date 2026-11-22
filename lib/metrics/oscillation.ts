@@ -4,7 +4,7 @@ import type { Landmark, LandmarkFrame } from "@/lib/types";
 import { LEGS, median, type Contact } from "./cadence.ts";
 
 // Hip-joint height minus ankle height, as a share of standing height (Drillis & Contini: 0.530 − 0.039).
-const LEG_TO_HEIGHT = 0.491;
+export const LEG_TO_HEIGHT = 0.491;
 const L_HIP = 23, R_HIP = 24;
 
 const dist = (a: Landmark, b: Landmark) => Math.hypot(a.x - b.x, a.y - b.y);

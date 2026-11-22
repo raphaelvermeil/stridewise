@@ -32,8 +32,9 @@ const scoreAt = (metric: "groundContactMs" | "torsoLeanDeg", v: number, kmh: num
   scoreRun(runner, { [metric]: v }, kmh).breakdown[0].score;
 
 test("faster runners aren't penalised for shorter contact or more lean; slower runners for the opposite", () => {
-  assert.ok(scoreAt("groundContactMs", 220, 14) > scoreAt("groundContactMs", 220, 10), "220 ms is better at 14 km/h");
-  assert.ok(scoreAt("groundContactMs", 300, 7) > scoreAt("groundContactMs", 300, 10), "300 ms is better at 7 km/h");
+  // Values include the +60 ms measurement calibration in computeGoals.
+  assert.ok(scoreAt("groundContactMs", 280, 14) > scoreAt("groundContactMs", 280, 10), "280 ms is better at 14 km/h");
+  assert.ok(scoreAt("groundContactMs", 360, 7) > scoreAt("groundContactMs", 360, 10), "360 ms is better at 7 km/h");
   assert.ok(scoreAt("torsoLeanDeg", 12, 16) > scoreAt("torsoLeanDeg", 12, 10), "12° lean is better at 16 km/h");
   assert.ok(scoreAt("torsoLeanDeg", 4, 6) > scoreAt("torsoLeanDeg", 4, 10), "4° lean is better at 6 km/h");
   // Hitting the speed's own target scores 100 at any speed.
