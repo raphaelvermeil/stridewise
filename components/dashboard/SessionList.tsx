@@ -3,7 +3,9 @@ import Link from "next/link";
 import { goalsMet } from "@/lib/metrics/labels";
 import type { Goal, Session } from "@/lib/types";
 
-export default function SessionList({ sessions, goals }: { sessions: Session[]; goals: Goal[] }) {
+type Props = { sessions: Session[]; goalsAt: (s: Session) => Goal[]; score: (s: Session) => number | null };
+
+export default function SessionList({ sessions, goalsAt, score }: Props) {
   return (
     <ul className="flex flex-col gap-3">
       {sessions.toReversed().map((s) => (
@@ -14,9 +16,17 @@ export default function SessionList({ sessions, goals }: { sessions: Session[]; 
               <p className="text-h4">
                 {new Date(s.createdAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
               </p>
-              <p className="text-body-sm text-muted">{s.treadmillSpeedKmh} km/h · {goalsMet(s.metrics, goals)} of {goals.length} metrics on goal</p>
+              <p className="text-body-sm text-muted">{s.treadmillSpeedKmh} km/h · {goalsMet(s.metrics, goalsAt(s))} of {goalsAt(s).length} metrics on goal</p>
             </div>
-            <span aria-hidden className="text-h3 text-muted">›</span>
+            <div className="flex items-center gap-4">
+              {score(s) !== null && (
+                <p className="text-right tabular-nums">
+                  <span className="text-metric">{score(s)}</span>
+                  <span className="block text-body-sm text-muted">form score</span>
+                </p>
+              )}
+              <span aria-hidden className="text-h3 text-muted">›</span>
+            </div>
           </Link>
         </li>
       ))}

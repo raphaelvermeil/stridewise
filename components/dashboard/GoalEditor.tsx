@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { goalsFor, saveGoals, type Profile } from "@/lib/db/profiles";
+import { getGoals, goalsFor, saveGoals, type Profile } from "@/lib/db/profiles";
 import { METRIC_LABELS } from "@/lib/metrics/labels";
 import { btnPrimary, card, input } from "@/components/ui/styles";
 import type { Goal } from "@/lib/types";
@@ -13,7 +13,7 @@ export default function GoalEditor({ profile }: { profile: Profile }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    goalsFor(profile).then(setGoals, (e) => setMessage(`Could not load your goals: ${e.message}`));
+    getGoals().then((saved) => setGoals(goalsFor(profile, saved)), (e) => setMessage(`Could not load your goals: ${e.message}`));
   }, [profile]);
 
   async function submit(e: FormEvent<HTMLFormElement>) {

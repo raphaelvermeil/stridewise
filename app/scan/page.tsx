@@ -10,7 +10,7 @@ import SpeedInput from "@/components/scan/SpeedInput";
 import Recorder from "@/components/scan/Recorder";
 import ScanHelp from "@/components/scan/ScanHelp";
 import { analyze } from "@/lib/metrics";
-import { getProfile } from "@/lib/db/profiles";
+import { getGoals, getProfile, goalsFor, scoreFor } from "@/lib/db/profiles";
 import { saveScan } from "@/lib/db/sessions";
 import { btnPrimary, btnSecondary, card } from "@/components/ui/styles";
 import type { LandmarkFrame } from "@/lib/types";
@@ -39,9 +39,13 @@ export default function ScanPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      const profile = await getProfile();
+      const [profile, saved] = await Promise.all([getProfile(), getGoals()]);
       if (!profile) throw new Error("finish onboarding first (your height is needed for the metrics)");
-      const session = await saveScan({ treadmillSpeedKmh: speedRef.current!, metrics: analyze(frames, profile.heightCm), landmarks: frames, video });
+      const treadmillSpeedKmh = speedRef.current!;
+      const metrics = analyze(frames, profile.heightCm);
+      // Score frozen at save time, so later profile edits don't rewrite this scan's history.
+      const { score } = scoreFor(profile, goalsFor(profile, saved, treadmillSpeedKmh), { metrics, treadmillSpeedKmh });
+      const session = await saveScan({ treadmillSpeedKmh, metrics, score, landmarks: frames, video });
       router.push(`/results/${session.id}`);
     } catch (e) {
       setSaveError(e instanceof Error ? e.message : String(e));

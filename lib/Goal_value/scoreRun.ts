@@ -9,6 +9,7 @@ import { computeGoals, type Goals, type Injury, type Runner } from "./computeGoa
 
 export type Metric = keyof Goals;
 export type Measured = Partial<Record<Metric, number>>;
+export type GoalRange = { target: number; min: number; max: number };
 
 export const BASE_WEIGHTS: Record<Metric, number> = {
   cadenceSpm:       30, // most-studied modifiable lever: +5–10% lowers knee/hip/tibial load; drives overstride too
@@ -55,7 +56,7 @@ const FALLOFF: Record<Metric, number> = {
  * On a "fine" side: 100 all the way to the edge → 0 at FALLOFF beyond it (so e.g. a −15° shin isn't rewarded).
  * Either side of the target is scored against its own edge, so the score is asymmetric.
  */
-function metricScore(m: Metric, v: number, g: Goals[Metric]): number {
+function metricScore(m: Metric, v: number, g: GoalRange): number {
   const edge = v >= g.target ? g.max : g.min;
   const span = Math.abs(edge - g.target) || 1e-9;
   const d = Math.abs(v - g.target);
@@ -71,9 +72,16 @@ export function weightsFor(injuries: Injury[]): Record<Metric, number> {
   return w;
 }
 
-/** treadmillSpeedKmh: from the session. Cadence, contact time, shin, overstride and knee-drive goals all shift with speed. */
-export function scoreRun(runner: Runner, measured: Measured, treadmillSpeedKmh: number) {
-  const goals = computeGoals({ ...runner, speedKmh: treadmillSpeedKmh });
+/**
+ * treadmillSpeedKmh: from the session. Cadence, contact time, shin, overstride and knee-drive goals all shift with speed.
+ * goals: pass the user's own goals so the score matches the app's on-goal badges; defaults to computeGoals at this speed.
+ */
+export function scoreRun(
+  runner: Runner,
+  measured: Measured,
+  treadmillSpeedKmh: number,
+  goals: Record<Metric, GoalRange> = computeGoals({ ...runner, speedKmh: treadmillSpeedKmh }),
+) {
   const w = weightsFor(runner.injuries);
   const parts = (Object.keys(BASE_WEIGHTS) as Metric[])
     .filter(m => measured[m] != null && Number.isFinite(measured[m]))

@@ -28,6 +28,7 @@ export type Session = {
   createdAt: string; // ISO date
   treadmillSpeedKmh: number;
   metrics: SessionMetrics;
+  score: number | null; // form score 0–100 when saved (scoreRun); null for older/seeded sessions
   videoPath: string | null; // in the private "scans" bucket; null for seeded sessions. Landmarks are stored too but not loaded here (large).
 };
 

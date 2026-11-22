@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase/client";
 import type { LandmarkFrame, Session } from "@/lib/types";
 
 // Landmarks are left out: about 1 MB per session, only needed when re-analysing one scan.
-const COLUMNS = "id, user_id, created_at, treadmill_speed_kmh, metrics, video_path";
+const COLUMNS = "id, user_id, created_at, treadmill_speed_kmh, metrics, video_path, score";
 
 type Row = {
   id: string;
@@ -13,6 +13,7 @@ type Row = {
   treadmill_speed_kmh: number;
   metrics: Session["metrics"];
   video_path: string | null;
+  score: number | null;
 };
 
 const toSession = (r: Row): Session => ({
@@ -22,9 +23,10 @@ const toSession = (r: Row): Session => ({
   treadmillSpeedKmh: Number(r.treadmill_speed_kmh),
   metrics: r.metrics,
   videoPath: r.video_path,
+  score: r.score,
 });
 
-export async function saveSession(s: Omit<Session, "id" | "createdAt" | "videoPath">): Promise<Session | null> {
+export async function saveSession(s: Omit<Session, "id" | "createdAt" | "videoPath" | "score">): Promise<Session | null> {
   const { data, error } = await supabase
     .from("sessions")
     .insert({ user_id: s.userId, treadmill_speed_kmh: s.treadmillSpeedKmh, metrics: s.metrics })
@@ -38,6 +40,7 @@ export async function saveSession(s: Omit<Session, "id" | "createdAt" | "videoPa
 export async function saveScan(s: {
   treadmillSpeedKmh: number;
   metrics: Session["metrics"];
+  score: number;
   landmarks: LandmarkFrame[];
   video: Blob;
 }): Promise<Session> {
@@ -58,6 +61,7 @@ export async function saveScan(s: {
       user_id: userId,
       treadmill_speed_kmh: s.treadmillSpeedKmh,
       metrics: s.metrics,
+      score: s.score,
       landmarks: s.landmarks,
       video_path: videoPath,
     })
@@ -84,4 +88,11 @@ export async function getVideoUrl(path: string): Promise<string> {
   const { data, error } = await supabase.storage.from("scans").createSignedUrl(path, 3600); // 1 h, plenty for one viewing
   if (error) throw error;
   return data.signedUrl;
+}
+
+/** One scan's landmark frames (~1 MB), for step-by-step analysis. Empty for seeded sessions. */
+export async function getLandmarks(id: string): Promise<LandmarkFrame[]> {
+  const { data, error } = await supabase.from("sessions").select("landmarks").eq("id", id).single();
+  if (error) throw error;
+  return data.landmarks ?? [];
 }

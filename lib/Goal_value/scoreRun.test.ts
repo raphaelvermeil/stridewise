@@ -43,3 +43,9 @@ test("faster runners aren't penalised for shorter contact or more lean; slower r
     assert.equal(scoreAt("torsoLeanDeg", g.torsoLeanDeg.target, kmh), 100);
   }
 });
+
+test("passed-in goals replace the computed ones", () => {
+  const goals = { ...goal(10), cadenceSpm: { target: 150, min: 145, max: 155, basis: "lit" as const } };
+  assert.equal(scoreRun(runner, { cadenceSpm: 150 }, 10, goals).score, 100);
+  assert.ok(scoreRun(runner, { cadenceSpm: 150 }, 10).score < 100, "default goals don't put 150 spm on target");
+});

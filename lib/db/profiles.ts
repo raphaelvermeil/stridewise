@@ -1,6 +1,7 @@
 // Part 4: onboarding answers and goals for the logged-in user. Browser-only (see sessions.ts).
 import { supabase } from "@/lib/supabase/client";
-import type { Goal, MetricKey } from "@/lib/types";
+import type { Goal, MetricKey, Session } from "@/lib/types";
+import { scoreRun } from "@/lib/Goal_value/scoreRun";
 import { computeGoals, type Fitness, type Injury, type Runner, type Sex } from "@/lib/Goal_value/computeGoals";
 
 export type Profile = {
@@ -77,11 +78,19 @@ export async function saveGoals(g: Goal[]): Promise<void> {
   if (error) throw error;
 }
 
-/** Saved goals, with computeGoals' suggestion for any metric (or target) the user hasn't saved yet. */
-export async function goalsFor(p: Profile): Promise<Goal[]> {
-  const saved = await getGoals();
-  return Object.entries(computeGoals(toRunner(p))).map(([metric, g]) => {
+/**
+ * Saved goals (from getGoals), with computeGoals' suggestion for any metric (or target) the user hasn't saved.
+ * speedKmh: the scan's speed, so suggestions fit how fast they ran; omitted = default easy pace for their experience.
+ */
+export function goalsFor(p: Profile, saved: Goal[], speedKmh?: number): Goal[] {
+  return Object.entries(computeGoals(toRunner(p, speedKmh))).map(([metric, g]) => {
     const s = saved.find((x) => x.metric === metric);
     return { metric: metric as MetricKey, min: s?.min ?? g.min, max: s?.max ?? g.max, target: s?.target ?? g.target };
   });
+}
+
+/** Form score (0–100) against the same goals the badges use (goalsFor at the scan's speed). */
+export function scoreFor(p: Profile, goals: Goal[], s: Pick<Session, "metrics" | "treadmillSpeedKmh">) {
+  const ranges = Object.fromEntries(goals.map((g) => [g.metric, { min: g.min, max: g.max, target: g.target ?? (g.min + g.max) / 2 }]));
+  return scoreRun(toRunner(p), s.metrics, s.treadmillSpeedKmh, ranges as Record<MetricKey, { min: number; max: number; target: number }>);
 }

@@ -4,32 +4,45 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getSession, getVideoUrl } from "@/lib/db/sessions";
-import { getProfile, goalsFor } from "@/lib/db/profiles";
+import { getLandmarks, getSession, getVideoUrl } from "@/lib/db/sessions";
+import { getGoals, getProfile, goalsFor, scoreFor, type Profile } from "@/lib/db/profiles";
 import { recommend } from "@/lib/recommendations/rules";
+import { analyzeOverTime } from "@/lib/metrics";
 import { METRIC_LABELS, goalsMet } from "@/lib/metrics/labels";
+import AnnotatedPlayback from "@/components/results/AnnotatedPlayback";
 import MetricCard from "@/components/results/MetricCard";
 import Recommendations from "@/components/results/Recommendations";
-import type { Goal, MetricKey, Session } from "@/lib/types";
+import RunTimeline from "@/components/results/RunTimeline";
+import { card } from "@/components/ui/styles";
+import type { Goal, MetricKey, MetricPoint, Session } from "@/lib/types";
 
 export default function ResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [points, setPoints] = useState<MetricPoint[] | null>(null); // step-by-step metrics, from the saved landmarks
   const [goals, setGoals] = useState<Goal[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([getSession(sessionId), getProfile().then((p) => (p ? goalsFor(p) : []))])
-      .then(async ([s, g]) => {
+    Promise.all([getSession(sessionId), getProfile(), getGoals()])
+      .then(async ([s, p, saved]) => {
         if (!s) return setError("This scan doesn't exist, or it isn't yours.");
+        setGoals(p ? goalsFor(p, saved, s.treadmillSpeedKmh) : []);
+        setProfile(p);
         setSession(s);
-        setGoals(g);
-        if (s.videoPath) setVideoUrl(await getVideoUrl(s.videoPath));
+        const [url, frames] = await Promise.all([s.videoPath ? getVideoUrl(s.videoPath) : null, getLandmarks(s.id)]);
+        setVideoUrl(url);
+        if (p && frames.length) setPoints(analyzeOverTime(frames, p.heightCm));
       })
       .catch((e) => setError(`Could not load this scan: ${e.message}`));
   }, [sessionId]);
 
+  // Breakdown is live (current profile); the headline uses the score frozen at save time when there is one.
+  const score = session && profile && scoreFor(profile, goals, session);
+  // The metrics costing the most points: how far from full marks, times how much they count.
+  const gains = score ? score.breakdown.filter((b) => b.score < 100).sort((a, b) => (100 - b.score) * b.weightPct - (100 - a.score) * a.weightPct).slice(0, 2) : [];
   const metrics = session && (Object.keys(METRIC_LABELS) as MetricKey[]).filter((m) => session.metrics[m] != null);
 
   return (
@@ -52,12 +65,26 @@ export default function ResultsPage() {
 
       {session && (
         <>
+          {score && (
+            <section className={`${card} flex flex-wrap items-center gap-x-10 gap-y-4`}>
+              <div>
+                <p className="text-body-sm text-muted">Form score</p>
+                <p className="tabular-nums"><span className="text-metric-xl">{session.score ?? score.score}</span><span className="ml-1 text-h3">/ 100</span></p>
+              </div>
+              <div className="max-w-md">
+                <p>Weighted toward the metrics most linked to injury, at the speed you ran.</p>
+                {gains.length > 0 && (
+                  <p className="mt-1 text-muted">Most points to gain: {gains.map((g) => METRIC_LABELS[g.metric].name).join(" and ")}.</p>
+                )}
+              </div>
+            </section>
+          )}
+
           <div className="grid items-start gap-8 lg:grid-cols-2">
             <section>
               <h2 className="mb-6 text-h2">Your run</h2>
-              {/* shortcut: plain video; AnnotatedPlayback (skeleton from the saved landmarks) can replace it later */}
               {videoUrl ? (
-                <video src={videoUrl} controls playsInline className="w-full rounded-lg bg-black shadow-sm" />
+                <AnnotatedPlayback src={videoUrl} />
               ) : (
                 <p className="text-muted">{session.videoPath ? "Loading video…" : "No video was saved for this scan."}</p>
               )}
@@ -67,6 +94,13 @@ export default function ResultsPage() {
               <Recommendations items={recommend(session.metrics, goals)} />
             </section>
           </div>
+
+          {points && points.length > 0 && (
+            <section>
+              <h2 className="mb-6 text-h2">During this run</h2>
+              <RunTimeline points={points} goals={goals} />
+            </section>
+          )}
 
           <section>
             <h2 className="mb-6 text-h2">All metrics</h2>
