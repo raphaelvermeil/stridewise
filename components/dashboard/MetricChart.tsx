@@ -23,7 +23,7 @@ export default function MetricChart({ metric, sessions, goal: storedGoal, height
   const change = latest - data[0].value;
 
   return (
-    <section className={`${card} flex flex-col gap-4`}>
+    <section className={`${card} flex flex-col gap-5`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-h4">{name}</h3>
@@ -39,9 +39,9 @@ export default function MetricChart({ metric, sessions, goal: storedGoal, height
         </div>
         {goal && <GoalBadge ok={!!ok} />}
       </div>
-      <div className="h-40">
+      <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
+          <LineChart data={data} margin={{ top: 12, right: 16, bottom: 4, left: -8 }}>
             <CartesianGrid vertical={false} stroke="var(--color-bg)" />
             <XAxis dataKey="date" {...axis} />
             <YAxis domain={["auto", "auto"]} width={48} tickFormatter={(v: number) => formatMetric(v)} {...axis} />

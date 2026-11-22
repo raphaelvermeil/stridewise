@@ -13,6 +13,7 @@ import AnnotatedPlayback from "@/components/results/AnnotatedPlayback";
 import MetricCard from "@/components/results/MetricCard";
 import Recommendations from "@/components/results/Recommendations";
 import RunTimeline from "@/components/results/RunTimeline";
+import ChartSkeleton from "@/components/ui/ChartSkeleton";
 import { card, spinner } from "@/components/ui/styles";
 import type { Goal, MetricKey, MetricPoint, Session } from "@/lib/types";
 
@@ -20,7 +21,8 @@ export default function ResultsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [points, setPoints] = useState<MetricPoint[] | null>(null); // step-by-step metrics, from the saved landmarks
+  // Step-by-step metrics, from the saved landmarks. undefined = still loading, null = none saved for this scan.
+  const [points, setPoints] = useState<MetricPoint[] | null>();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -34,9 +36,9 @@ export default function ResultsPage() {
         setSession(s);
         const [url, frames] = await Promise.all([s.videoPath ? getVideoUrl(s.videoPath) : null, getLandmarks(s.id)]);
         setVideoUrl(url);
-        if (p && frames.length) setPoints(analyzeOverTime(frames, p.heightCm));
+        setPoints(p && frames.length ? analyzeOverTime(frames, p.heightCm) : null);
       })
-      .catch((e) => setError(`Could not load this scan: ${e.message}`));
+      .catch((e) => setError(`Could not load this scan: ${e.message}. Refresh the page to try again.`));
   }, [sessionId]);
 
   // Breakdown is live (current profile); the headline uses the score frozen at save time when there is one.
@@ -48,7 +50,7 @@ export default function ResultsPage() {
   return (
     <main className="mx-auto max-w-5xl space-y-12 px-6 py-8">
       <div>
-        <Link href="/dashboard" className="text-body-sm text-muted hover:text-ink">← Dashboard</Link>
+        <Link href="/dashboard" className="rounded-sm text-body-sm text-muted hover:text-ink focus-visible:outline-none focus-visible:shadow-focus">← Dashboard</Link>
         {session && (
           <>
             <h1 className="mt-3 text-h1">
@@ -89,19 +91,23 @@ export default function ResultsPage() {
           </div>
 
           <section>
-            <h2 className="mb-6 text-h2">What to work on</h2>
+            <h2 className="mb-6 text-h2">What to Work On</h2>
             <Recommendations items={recommend(session.metrics, goals)} />
           </section>
 
-          {points && points.length > 0 && (
+          {(points === undefined ? !error : points && points.length > 0) && (
             <section>
-              <h2 className="mb-6 text-h2">During this run</h2>
-              <RunTimeline points={points} goals={goals} heightCm={profile!.heightCm} />
+              <h2 className="mb-6 text-h2">During This Run</h2>
+              {points ? (
+                <RunTimeline points={points} goals={goals} heightCm={profile!.heightCm} />
+              ) : (
+                <div role="status" aria-label="Loading the run chart"><ChartSkeleton chartHeight="h-72" /></div>
+              )}
             </section>
           )}
 
           <section>
-            <h2 className="mb-6 text-h2">All metrics</h2>
+            <h2 className="mb-6 text-h2">All Metrics</h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {metrics!.map((m) => (
                 <MetricCard key={m} metric={m} value={session.metrics[m]} goal={goals.find((g) => g.metric === m)} heightCm={profile?.heightCm ?? 170} />

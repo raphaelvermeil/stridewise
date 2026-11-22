@@ -7,11 +7,12 @@ import Link from "next/link";
 import { btnPrimary } from "@/components/ui/styles";
 
 const STEPS = [
-  ["Camera side-on, low down", "Put the camera beside the treadmill, about 2.5 m away and 30–60 cm off the floor, pointing straight at your side."],
-  ["Whole body in frame", "Head to feet must be in view, and you should fill at least half the frame's height."],
-  ["Turn sideways", "Your side faces the camera, so your shoulders line up instead of both showing."],
-  ["Good light, fitted clothes", "Baggy clothes and dim rooms hide your joints."],
-  ["Then just run", "Enter your speed and get into position. When every check passes, a voice counts you in for 10 s to start the treadmill, then records 30 s on its own."],
+  // The gaps in "2.5 m", "10 s" etc. are non-breaking spaces, so a number never splits from its unit.
+  ["Camera Side-On, Low Down", "Put the camera beside the treadmill, about 2.5 m away and 30–60 cm off the floor, pointing straight at your side."],
+  ["Whole Body in Frame", "Head to feet must be in view, and you should fill at least half the frame's height."],
+  ["Turn Sideways", "Your side faces the camera, so your shoulders line up instead of both showing."],
+  ["Good Light, Fitted Clothes", "Baggy clothes and dim rooms hide your joints."],
+  ["Then Just Run", "Enter your speed and get into position. When every check passes, a voice counts you in for 10 s to start the treadmill, then records 30 s on its own."],
 ];
 
 // first: the automatic popup on arrival, which gets an X back to the dashboard. Reopened with "?", it only closes.
@@ -23,12 +24,12 @@ export default function ScanHelp({ onClose, first }: { onClose: () => void; firs
     <dialog ref={ref} onClose={onClose} aria-labelledby="scan-help-title"
       className="m-auto h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-5xl overflow-hidden rounded-xl bg-surface p-2 text-ink shadow-lg backdrop:bg-ink/50 sm:h-[calc(100dvh-5rem)]">
       {/* The inner box scrolls, not the dialog, so the scrollbar sits inside the rounded corners instead of being cut off by them. */}
-      <div className="flex h-full flex-col gap-8 overflow-y-auto p-4 scrollbar-thin sm:p-8">
+      <div className="flex h-full flex-col gap-8 overflow-y-auto overscroll-contain p-4 scrollbar-thin sm:p-8">
         <div className="flex items-start justify-between gap-4">
-          <h2 id="scan-help-title" className="text-h1">Set up your scan</h2>
+          <h2 id="scan-help-title" className="text-h1">Set Up Your Scan</h2>
           {first && (
             <Link href="/dashboard" aria-label="Back to dashboard"
-              className="grid size-10 shrink-0 place-items-center rounded-full bg-bg text-h4 transition duration-200 ease-out active:scale-[0.97]">✕</Link>
+              className="grid size-10 shrink-0 place-items-center rounded-full bg-bg text-h4 transition duration-200 ease-out hover:bg-ink/10 active:scale-[0.97]">✕</Link>
           )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -58,7 +59,7 @@ export default function ScanHelp({ onClose, first }: { onClose: () => void; firs
             </li>
           ))}
         </ol>
-        <button onClick={() => ref.current?.close()} className={`${btnPrimary} mt-auto self-center`}>Got it, start the camera</button>
+        <button onClick={() => ref.current?.close()} className={`${btnPrimary} mt-auto self-center`}>Start the Scan</button>
       </div>
     </dialog>
   );

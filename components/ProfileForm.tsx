@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useUnsavedWarning } from "@/lib/useUnsavedWarning";
 import { saveProfile, type Profile } from "@/lib/db/profiles";
 import { btnPrimary, card, input, label, spinner } from "@/components/ui/styles";
 import type { Fitness, Injury, Sex } from "@/lib/Goal_value/computeGoals";
@@ -27,6 +28,8 @@ type Props = {
 export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [dirty, setDirty] = useState(false); // edited since the last save -> warn before leaving
+  useUnsavedWarning(dirty);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,6 +46,7 @@ export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
         runsPerWeek: Number(f.get("runsPerWeek")),
         injuryHistory: f.getAll("injury") as Injury[],
       });
+      setDirty(false);
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -51,7 +55,7 @@ export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className={`${card} flex flex-col gap-4`}>
+    <form onSubmit={submit} onChange={() => setDirty(true)} className={`${card} flex flex-col gap-4`}>
       <label className={label}>
         Sex
         <select className={input} name="sex" required defaultValue={initial?.sex ?? ""}>
@@ -62,15 +66,15 @@ export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
       </label>
       <label className={label}>
         Age
-        <input className={input} name="age" type="number" required min={10} max={100} defaultValue={initial?.age} />
+        <input className={input} name="age" type="number" autoComplete="off" required min={10} max={100} defaultValue={initial?.age} />
       </label>
       <label className={label}>
         Height (cm)
-        <input className={input} name="heightCm" type="number" required min={100} max={250} defaultValue={initial?.heightCm} />
+        <input className={input} name="heightCm" type="number" autoComplete="off" required min={100} max={250} defaultValue={initial?.heightCm} />
       </label>
       <label className={label}>
         Weight (kg)
-        <input className={input} name="weightKg" type="number" required min={30} max={250} step="0.1" defaultValue={initial?.weightKg} />
+        <input className={input} name="weightKg" type="number" autoComplete="off" required min={30} max={250} step="0.1" defaultValue={initial?.weightKg} />
       </label>
       <label className={label}>
         Running experience
@@ -83,14 +87,14 @@ export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
       </label>
       <label className={label}>
         Runs per week
-        <input className={input} name="runsPerWeek" type="number" required min={0} max={14} defaultValue={initial?.runsPerWeek} />
+        <input className={input} name="runsPerWeek" type="number" autoComplete="off" required min={0} max={14} defaultValue={initial?.runsPerWeek} />
       </label>
       <fieldset className="flex flex-col gap-1">
         <legend className="mb-1.5 font-medium">Past running injuries <span className="text-body-sm font-normal text-muted">(tick all that apply, or leave blank)</span></legend>
         <div className="flex flex-col gap-1 rounded-sm bg-bg/50 p-3">
           {INJURIES.map((i) => (
             <label key={i.key} className="flex items-center gap-2 py-0.5">
-              <input type="checkbox" name="injury" value={i.key} className="size-4 accent-ink"
+              <input type="checkbox" name="injury" value={i.key} className="size-4 accent-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
                 defaultChecked={initial?.injuryHistory.includes(i.key)} />
               {i.label}
             </label>
@@ -100,7 +104,7 @@ export default function ProfileForm({ initial, submitLabel, onSaved }: Props) {
       <button className={`${btnPrimary} mt-2`} disabled={busy}>
         {busy ? <><span aria-hidden className={`${spinner} mr-2 size-4`} />Saving…</> : submitLabel}
       </button>
-      {error && <p role="alert" className="text-body-sm text-muted">{error}</p>}
+      {error && <p role="alert" className="text-body-sm text-muted">Could not save your details: {error}. Check your connection and try again.</p>}
     </form>
   );
 }

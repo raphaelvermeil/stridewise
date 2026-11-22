@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import Logo from "@/components/Logo";
 
-const item = "block w-full rounded-sm px-3 py-2 text-left transition duration-200 ease-out hover:bg-bg active:scale-[0.97]";
+const item = "block w-full rounded-sm px-3 py-2 text-left transition duration-200 ease-out hover:bg-bg active:scale-[0.97] focus-visible:outline-none focus-visible:bg-bg focus-visible:shadow-focus";
 
 export default function Navbar() {
   const router = useRouter();
@@ -23,12 +23,12 @@ export default function Navbar() {
     <nav className="flex items-center justify-between px-6 py-4">
       <Logo href="/dashboard" />
       {/* shortcut: menu closes on item click or toggle only, not on outside click */}
-      <div className="relative">
+      <div className="relative" onKeyDown={(e) => e.key === "Escape" && setOpen(false)}>
         <button
           onClick={() => setOpen(!open)}
           aria-label="Profile menu"
           aria-expanded={open}
-          className="grid size-10 place-items-center rounded-full bg-surface shadow-xs transition duration-200 ease-out hover:shadow-sm active:scale-[0.97]"
+          className="grid size-10 place-items-center rounded-full bg-surface shadow-xs transition duration-200 ease-out hover:shadow-sm active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-focus"
         >
           <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="8" r="4" />
@@ -37,8 +37,8 @@ export default function Navbar() {
         </button>
         {open && (
           <div className="absolute right-0 z-10 mt-2 w-44 rounded-md bg-surface p-1.5 shadow-md">
-            <Link href="/profile" onClick={() => setOpen(false)} className={item}>Edit profile</Link>
-            <button onClick={logout} className={item}>Log out</button>
+            <Link href="/profile" onClick={() => setOpen(false)} className={item}>Edit Profile</Link>
+            <button onClick={logout} className={item}>Log Out</button>
           </div>
         )}
       </div>

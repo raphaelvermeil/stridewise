@@ -6,9 +6,9 @@ export const btnSecondary = `${pressable} bg-surface text-ink shadow-xs hover:sh
 
 export const card = "rounded-lg bg-surface p-6 shadow-sm";
 
-export const input = "rounded-sm border border-ink/20 bg-surface px-3 py-2.5 outline-none transition duration-200 ease-out hover:border-ink/40 focus:border-ink focus:shadow-focus";
-// Add next to `input` when the value is wrong: soft red outline and glow. "!" so it wins over the normal grey/ink outline.
-export const inputInvalid = "border-red-500! focus:shadow-[0_0_0_4px_rgb(239_68_68/0.2)]!";
+export const input = "rounded-sm border border-ink/20 bg-surface text-ink px-3 py-2.5 outline-none transition duration-200 ease-out hover:border-ink/40 focus:border-ink focus:ring-1 focus:ring-ink"; // focus: outline turns solid ink (ring adds width without shifting layout)
+// Add next to `input` when the value is wrong: red outline, also while focused. "!" so it wins over the normal grey/ink outline.
+export const inputInvalid = "border-red-500! focus:ring-red-500!";
 
 // Loading spinner in the current text colour (white in a dark button, ink on the page): a faint ring with a solid arc.
 export const spinner = "inline-block animate-spin rounded-full border-2 border-current/25 border-t-current";

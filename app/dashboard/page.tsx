@@ -8,7 +8,8 @@ import { listSessions } from "@/lib/db/sessions";
 import { METRIC_LABELS, goalsMet, shortDate } from "@/lib/metrics/labels";
 import MetricChart from "@/components/dashboard/MetricChart";
 import SessionList from "@/components/dashboard/SessionList";
-import { btnPrimary, card, spinner } from "@/components/ui/styles";
+import { btnPrimary, card } from "@/components/ui/styles";
+import ChartSkeleton from "@/components/ui/ChartSkeleton";
 import type { Goal, MetricKey, Session } from "@/lib/types";
 
 const WEEK_MS = 7 * 24 * 3600 * 1000;
@@ -26,7 +27,7 @@ export default function DashboardPage() {
         setProfile(p);
         setSessions(s);
       },
-      (e) => setError(`Could not load your scans: ${e.message}`),
+      (e) => setError(`Could not load your scans: ${e.message}. Refresh the page to try again.`),
     );
   }, []);
 
@@ -42,24 +43,29 @@ export default function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-5xl space-y-12 px-6 py-8">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-h1">Your progress</h1>
+          <h1 className="text-h1">Your Progress</h1>
           <p className="mt-2 text-body-lg text-muted">How your form is changing, scan by scan.</p>
         </div>
-        <Link href="/scan" className={btnPrimary}>New scan</Link>
+        <Link href="/scan" className={btnPrimary}>New Scan</Link>
       </div>
 
       {error && <p role="alert" className="text-muted">{error}</p>}
-      {sessions === null && !error && <div className="grid place-items-center py-24"><span aria-label="Loading" className={`${spinner} size-8`} /></div>}
+      {/* Grey placeholder cards in the shape of the charts while the scans load. */}
+      {sessions === null && !error && (
+        <div role="status" aria-label="Loading your progress" className="grid gap-6 md:grid-cols-2">
+          {Object.keys(METRIC_LABELS).map((m) => <ChartSkeleton key={m} />)}
+        </div>
+      )}
 
       {sessions?.length === 0 && (
         <section className={`${card} py-12 text-center`}>
-          <h2 className="text-h2">No scans yet</h2>
+          <h2 className="text-h2">No Scans Yet</h2>
           <p className="mx-auto mt-2 max-w-md text-body-lg text-muted">
             Set up your camera by the treadmill and run for 30 seconds. Your first scan sets the baseline for everything here.
           </p>
-          <Link href="/scan" className={`${btnPrimary} mt-6`}>Start your first scan</Link>
+          <Link href="/scan" className={`${btnPrimary} mt-6`}>Start Your First Scan</Link>
         </section>
       )}
 
@@ -92,8 +98,8 @@ export default function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="mb-6 text-h2">Metrics over time</h2>
-            <div className="grid gap-4 md:grid-cols-2">
+            <h2 className="mb-6 text-h2">Metrics Over Time</h2>
+            <div className="grid gap-6 md:grid-cols-2">
               {(Object.keys(METRIC_LABELS) as MetricKey[]).map((m) => (
                 <MetricChart key={m} metric={m} sessions={sessions!} goal={goals.find((g) => g.metric === m)} heightCm={profile?.heightCm ?? 170} />
               ))}
@@ -101,7 +107,7 @@ export default function DashboardPage() {
           </section>
 
           <section>
-            <h2 className="mb-6 text-h2">Past scans</h2>
+            <h2 className="mb-6 text-h2">Past Scans</h2>
             <SessionList sessions={sessions!} goalsAt={goalsAt} score={score} />
           </section>
         </>

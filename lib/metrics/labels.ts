@@ -2,16 +2,17 @@
 import type { Goal, MetricKey, SessionMetrics } from "@/lib/types";
 import { LEG_TO_HEIGHT } from "./oscillation.ts";
 
-export const METRIC_LABELS: Record<MetricKey, { name: string; unit: string }> = {
-  cadenceSpm: { name: "Cadence", unit: "steps/min" },
-  overstrideRatio: { name: "Overstride (heel ahead of hip)", unit: "cm" },
-  shinAngleDeg: { name: "Shin angle at landing", unit: "°" },
-  torsoLeanDeg: { name: "Forward torso lean", unit: "°" },
-  groundContactMs: { name: "Ground contact time", unit: "ms" },
-  maxThighAngleDeg: { name: "Knee drive (peak thigh angle)", unit: "°" },
-  headOffsetRatio: { name: "Head forward of shoulders", unit: "cm" },
-  elbowAngleDeg: { name: "Elbow angle", unit: "°" },
-  verticalOscillationCm: { name: "Vertical oscillation (bounce)", unit: "cm" },
+// blurb: one plain sentence on what the metric is, shown under its name.
+export const METRIC_LABELS: Record<MetricKey, { name: string; unit: string; blurb: string }> = {
+  cadenceSpm: { name: "Cadence", unit: "steps/min", blurb: "Steps per minute." },
+  overstrideRatio: { name: "Overstride", unit: "cm", blurb: "How far ahead of your hip your heel lands." },
+  shinAngleDeg: { name: "Shin Angle at Landing", unit: "°", blurb: "How tilted your shin is when your foot lands." },
+  torsoLeanDeg: { name: "Forward Torso Lean", unit: "°", blurb: "How far your upper body leans forward." },
+  groundContactMs: { name: "Ground Contact Time", unit: "ms", blurb: "How long each foot stays on the ground." },
+  maxThighAngleDeg: { name: "Knee Drive", unit: "°", blurb: "How high your thigh swings forward." },
+  headOffsetRatio: { name: "Head Forward of Shoulders", unit: "cm", blurb: "How far your head sits ahead of your shoulders." },
+  elbowAngleDeg: { name: "Elbow Angle", unit: "°", blurb: "How bent your arms are." },
+  verticalOscillationCm: { name: "Vertical Oscillation", unit: "cm", blurb: "How much you bounce up and down." },
 };
 
 // Ratio metrics shown in cm: × the body length they're a fraction of, estimated from height

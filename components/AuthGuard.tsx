@@ -25,11 +25,13 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
   // Don't render protected pages (or let them query the db) until we know who is logged in.
   if (!allowed) return null;
-  if (isPublic) return children;
+  // id="main": where the "Skip to content" link (layout.tsx) jumps to.
+  const main = <div id="main" tabIndex={-1} className="outline-none">{children}</div>;
+  if (isPublic) return main;
   return (
     <>
       <Navbar />
-      {children}
+      {main}
     </>
   );
 }
