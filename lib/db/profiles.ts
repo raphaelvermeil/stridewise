@@ -2,7 +2,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Goal, MetricKey, Session } from "@/lib/types";
 import { scoreRun } from "@/lib/Goal_value/scoreRun";
-import { computeGoals, type Fitness, type Injury, type Runner, type Sex } from "@/lib/Goal_value/computeGoals";
+import { computeGoals, INJURY, type Fitness, type Injury, type Runner, type Sex } from "@/lib/Goal_value/computeGoals";
 
 export type Profile = {
   sex: Sex;
@@ -21,7 +21,7 @@ export const toRunner = (p: Profile, speedKmh?: number): Runner => ({
   heightCm: p.heightCm,
   weightKg: p.weightKg,
   fitness: p.experience,
-  injuries: p.injuryHistory,
+  injuries: p.injuryHistory.filter((i) => i in INJURY), // profiles saved before the injury keys changed hold old names
   speedKmh,
 });
 

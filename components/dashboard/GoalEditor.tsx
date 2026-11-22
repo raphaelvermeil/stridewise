@@ -4,7 +4,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { getGoals, goalsFor, saveGoals, type Profile } from "@/lib/db/profiles";
 import { METRIC_LABELS } from "@/lib/metrics/labels";
-import { btnPrimary, card, input } from "@/components/ui/styles";
+import { btnPrimary, card, input, spinner } from "@/components/ui/styles";
 import type { Goal } from "@/lib/types";
 
 export default function GoalEditor({ profile }: { profile: Profile }) {
@@ -59,7 +59,7 @@ export default function GoalEditor({ profile }: { profile: Profile }) {
           </div>
         ))}
       </div>
-      <button className={`${btnPrimary} mt-2`} disabled={busy}>{busy ? "Saving…" : "Save goals"}</button>
+      <button className={`${btnPrimary} mt-2`} disabled={busy}>{busy ? <><span aria-hidden className={`${spinner} mr-2 size-4`} />Saving…</> : "Save goals"}</button>
       {message && <p role="alert" className="text-body-sm text-muted">{message}</p>}
     </form>
   );

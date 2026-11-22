@@ -50,11 +50,15 @@ export function toKmh(text: string, unit: SpeedUnit): number | null {
   return kmh >= MIN_KMH && kmh <= MAX_KMH ? kmh : null;
 }
 
-/** The 3-25 km/h range written in `unit`, rounded inward so both ends are allowed: "1.9-15.5", "2:24-20:00". */
-export function rangeText(unit: SpeedUnit): string {
+/** The 3-25 km/h range in `unit` as [lowest, highest], rounded inward so both ends are allowed. */
+export function limits(unit: SpeedUnit): [number, number] {
   const step = isPace(unit) ? 1 / 60 : 0.1; // paces to the second, speeds to 0.1
   const [a, b] = [fromKmh(MIN_KMH, unit), fromKmh(MAX_KMH, unit)].sort((x, y) => x - y); // pace runs backwards
-  const lo = Math.ceil(a / step - 1e-9) * step;
-  const hi = Math.floor(b / step + 1e-9) * step;
+  return [Math.ceil(a / step - 1e-9) * step, Math.floor(b / step + 1e-9) * step];
+}
+
+/** The range as text: "1.9-15.5", "2:24-20:00". */
+export function rangeText(unit: SpeedUnit): string {
+  const [lo, hi] = limits(unit);
   return `${format(lo, unit)}–${format(hi, unit)}`;
 }

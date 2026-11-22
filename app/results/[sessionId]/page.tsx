@@ -13,7 +13,7 @@ import AnnotatedPlayback from "@/components/results/AnnotatedPlayback";
 import MetricCard from "@/components/results/MetricCard";
 import Recommendations from "@/components/results/Recommendations";
 import RunTimeline from "@/components/results/RunTimeline";
-import { card } from "@/components/ui/styles";
+import { card, spinner } from "@/components/ui/styles";
 import type { Goal, MetricKey, MetricPoint, Session } from "@/lib/types";
 
 export default function ResultsPage() {
@@ -62,6 +62,7 @@ export default function ResultsPage() {
       </div>
 
       {error && <p role="alert" className="text-muted">{error}</p>}
+      {!session && !error && <div className="grid place-items-center py-24"><span aria-label="Loading" className={`${spinner} size-8`} /></div>}
 
       {session && (
         <>
@@ -86,7 +87,9 @@ export default function ResultsPage() {
               {videoUrl ? (
                 <AnnotatedPlayback src={videoUrl} />
               ) : (
-                <p className="text-muted">{session.videoPath ? "Loading video…" : "No video was saved for this scan."}</p>
+                <p className="flex items-center gap-2 text-muted">
+                  {session.videoPath ? <><span aria-hidden className={`${spinner} size-4`} />Loading video…</> : "No video was saved for this scan."}
+                </p>
               )}
             </section>
             <section>

@@ -11,7 +11,7 @@ export default function SessionList({ sessions, goalsAt, score }: Props) {
       {sessions.toReversed().map((s) => (
         <li key={s.id}>
           <Link href={`/results/${s.id}`}
-            className="flex items-center justify-between gap-4 rounded-lg bg-surface px-6 py-4 shadow-xs transition duration-200 ease-out hover:shadow-md active:scale-[0.99]">
+            className="flex items-center justify-between gap-4 rounded-lg bg-surface px-6 py-4 shadow-xs transition duration-200 ease-out hover:shadow-md active:scale-[0.97]">
             <div>
               <p className="text-h4">
                 {new Date(s.createdAt).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}

@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { btnPrimary } from "@/components/ui/styles";
 
 const STEPS = [
@@ -12,15 +13,23 @@ const STEPS = [
   ["Then just run", "Enter your speed and get into position. When every check passes, a voice counts you in for 10 s to start the treadmill, then records 30 s on its own."],
 ];
 
-export default function ScanHelp({ onClose }: { onClose: () => void }) {
+// first: the automatic popup on arrival, which gets an X back to the dashboard. Reopened with "?", it only closes.
+export default function ScanHelp({ onClose, first }: { onClose: () => void; first: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => ref.current?.showModal(), []);
 
   return (
     <dialog ref={ref} onClose={onClose} aria-labelledby="scan-help-title"
-      className="m-auto h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-5xl rounded-xl bg-surface p-0 text-ink shadow-lg backdrop:bg-ink/50 sm:h-[calc(100dvh-5rem)]">
-      <div className="flex min-h-full flex-col gap-8 p-6 sm:p-10">
-        <h2 id="scan-help-title" className="text-h1">Set up your scan</h2>
+      className="m-auto h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-5xl overflow-hidden rounded-xl bg-surface p-2 text-ink shadow-lg backdrop:bg-ink/50 sm:h-[calc(100dvh-5rem)]">
+      {/* The inner box scrolls, not the dialog, so the scrollbar sits inside the rounded corners instead of being cut off by them. */}
+      <div className="flex h-full flex-col gap-8 overflow-y-auto p-4 scrollbar-thin sm:p-8">
+        <div className="flex items-start justify-between gap-4">
+          <h2 id="scan-help-title" className="text-h1">Set up your scan</h2>
+          {first && (
+            <Link href="/dashboard" aria-label="Back to dashboard"
+              className="grid size-10 shrink-0 place-items-center rounded-full bg-bg text-h4 transition duration-200 ease-out active:scale-[0.97]">✕</Link>
+          )}
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {/* shortcut: placeholder boxes until the real diagram and example image exist */}
           <figure className="flex aspect-video flex-col items-center justify-center rounded-lg bg-white shadow-xs">
