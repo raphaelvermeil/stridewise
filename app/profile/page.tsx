@@ -24,7 +24,7 @@ export default function ProfilePage() {
         <p className="mt-2 mb-8 text-body-lg text-muted">Your details shape the goals suggested for you.</p>
         {!profile && <div className="grid place-items-center py-24"><span aria-label="Loading" className={`${spinner} size-8`} /></div>}
         {profile && (
-          <ProfileForm initial={profile} submitLabel="Save details" onSaved={() => { setSaved(true); load(); }} />
+          <ProfileForm initial={profile} submitLabel="Save Details" onSaved={() => { setSaved(true); load(); }} />
         )}
         {saved && <p role="status" className="mt-3 text-body-sm text-muted">Details saved.</p>}
       </section>

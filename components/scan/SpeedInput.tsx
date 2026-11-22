@@ -34,13 +34,15 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
       <div className="flex gap-2">
         <input
           id="speed"
+          name="speed"
+          autoComplete="off"
           // Paces need a ":" (5:30), which a number box won't accept.
           type={pace ? "text" : "number"}
           inputMode={pace ? "text" : "decimal"}
           step={pace ? undefined : 0.5}
           min={pace ? undefined : Math.ceil(lo * 2) / 2}
           max={pace ? undefined : Math.floor(hi * 2) / 2}
-          placeholder={pace ? "5:30" : "10"}
+          placeholder={pace ? "5:30…" : "10…"}
           value={text}
           onChange={(e) => update(e.target.value, unit)}
           aria-invalid={invalid}
@@ -58,7 +60,7 @@ export default function SpeedInput({ onChange }: { onChange: (kmh: number | null
           ))}
         </select>
       </div>
-      <p id="speed-hint" className={invalid ? "text-body-sm text-red-600" : "text-body-sm text-muted"}>
+      <p id="speed-hint" aria-live="polite" className={invalid ? "text-body-sm text-red-600" : "text-body-sm text-muted"}>
         {invalid ? `Enter a ${pace ? "pace" : "speed"} between ${range}.` : `Between ${range}. Keep the same speed for every scan.`}
       </p>
     </div>

@@ -22,12 +22,12 @@ export default function RunTimeline({ points, goals, heightCm }: { points: Metri
       <div className="flex flex-wrap gap-2" role="group" aria-label="Metric">
         {(Object.keys(METRIC_LABELS) as MetricKey[]).map((m) => (
           <button key={m} onClick={() => setMetric(m)} aria-pressed={m === metric}
-            className={`rounded-full px-3 py-1.5 text-body-sm font-medium transition duration-200 ease-out active:scale-[0.97] ${m === metric ? "bg-ink text-white" : "bg-bg"}`}>
+            className={`rounded-full px-3 py-1.5 text-body-sm font-medium transition duration-200 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-focus ${m === metric ? "bg-ink text-white" : "bg-bg hover:bg-ink/10"}`}>
             {METRIC_LABELS[m].name}
           </button>
         ))}
       </div>
-      <div className="h-64">
+      <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}>
             <CartesianGrid vertical={false} stroke="var(--color-bg)" />

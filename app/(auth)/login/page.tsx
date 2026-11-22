@@ -45,7 +45,8 @@ export default function LoginPage() {
         setWrong(true);
         setShake(true);
       }
-      return setMessage(error.message);
+      // Supabase only names the problem; add what to do next.
+      return setMessage(error.message === "Invalid login credentials" ? "Wrong email or password. Check both and try again." : `${error.message}. Please try again.`);
     }
     if (!data.session) return setMessage("Check your email and click the link to confirm your account. It opens the next step in a new tab, so you can close this one.");
     router.push(await nextPage());
@@ -56,22 +57,22 @@ export default function LoginPage() {
     setMessage("");
   }
 
-  const title = signUp ? "Sign up" : "Log in";
+  const title = signUp ? "Sign Up" : "Log In";
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 p-6">
-      <div className="flex justify-center"><Logo href="/" /></div>
+      <div className="flex justify-center"><Logo href="/" large /></div>
       <div className={card}>
       <h1 className="mb-6 text-h2">{title}</h1>
       <form onSubmit={submit} className="flex flex-col gap-4">
         <label className={label}>
           Email
-          <input className={input} type="email" required autoComplete="email"
+          <input className={input} type="email" name="email" required autoComplete="email" spellCheck={false}
             value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label className={label}>
           Password
-          <input type="password" required minLength={6}
+          <input type="password" name="password" required minLength={6}
             className={`${input} ${wrong ? inputInvalid : ""} ${shake ? "animate-shake" : ""}`}
             aria-invalid={wrong}
             onAnimationEnd={() => setShake(false)}
@@ -81,12 +82,12 @@ export default function LoginPage() {
         <button className={`${btnPrimary} mt-2`} disabled={busy}>
           {busy ? <span className={`${spinner} size-5`} aria-label="Loading" /> : title}
         </button>
-        {message && <p role="alert" className="text-body-sm text-muted">{message}</p>}
+        <p role="alert" className="text-body-sm text-muted empty:hidden">{message}</p>
       </form>
       <p className="mt-6 text-body-sm text-muted">
         {signUp ? "Already have an account? " : "New to StrideWise? "}
         <button type="button" onClick={toggle} className="font-medium text-ink underline">
-          {signUp ? "Log in" : "Sign up"}
+          {signUp ? "Log In" : "Sign Up"}
         </button>
       </p>
       </div>

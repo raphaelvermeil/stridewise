@@ -16,7 +16,7 @@ import { saveScan } from "@/lib/db/sessions";
 import { btnPrimary, btnSecondary, card } from "@/components/ui/styles";
 import type { LandmarkFrame } from "@/lib/types";
 
-const roundBtn = "grid size-11 place-items-center rounded-full bg-surface text-h4 shadow-md transition duration-200 ease-out active:scale-[0.97]";
+const roundBtn = "grid size-11 place-items-center rounded-full bg-surface text-h4 shadow-md transition duration-200 ease-out hover:shadow-lg active:scale-[0.97] focus-visible:outline-none focus-visible:shadow-focus";
 
 export default function ScanPage() {
   const router = useRouter();
@@ -94,7 +94,7 @@ export default function ScanPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-h1">New scan</h1>
+        <h1 className="text-h1">New Scan</h1>
         <button onClick={openHelp} aria-label="How to set up" className={roundBtn}>?</button>
       </div>
 
@@ -108,7 +108,9 @@ export default function ScanPage() {
             </>
           )}
 
-          <div className="absolute inset-x-0 top-0 flex justify-between p-4 sm:p-6">
+          {/* safe-area: keep the buttons clear of phone notches in full screen */}
+          <div className="absolute inset-x-0 top-0 flex justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))] sm:p-6">
+
             <Link href="/dashboard" aria-label="Cancel scan" className={roundBtn}>✕</Link>
             <button onClick={openHelp} aria-label="How to set up" className={roundBtn}>?</button>
           </div>
@@ -125,13 +127,13 @@ export default function ScanPage() {
             <form noValidate onSubmit={(e) => { e.preventDefault(); setSpeedConfirmed(true); }}
               className={`${card} absolute top-1/2 left-1/2 flex w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col gap-4`}>
               <SpeedInput onChange={setSpeedKmh} />
-              <button className={btnPrimary} disabled={speedKmh === null}>Continue</button>
+              <button className={btnPrimary} disabled={speedKmh === null}>Confirm Speed</button>
             </form>
           )}
 
           {stream && speedConfirmed && !saving && !helpOpen && (
             <>
-              <div className={`${card} absolute bottom-6 left-1/2 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 space-y-2 py-4`}>
+              <div className={`${card} absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 space-y-2 py-4`}>
                 <CameraCheck frame={frame} onReady={setCameraReady} />
               </div>
               <Recorder ready={cameraReady} stream={stream} frame={frame} onDone={onRecorded} />
@@ -143,17 +145,17 @@ export default function ScanPage() {
               <div className={`${card} w-[min(28rem,100%)] text-center`} aria-live="polite">
                 {saveError ? (
                   <>
-                    <h2 className="text-h3">Could not save the scan</h2>
-                    <p className="mt-2 text-muted">{saveError}</p>
+                    <h2 className="text-h3">Could Not Save the Scan</h2>
+                    <p className="mt-2 text-muted">{saveError}. Check your connection, then press Try Again.</p>
                     <div className="mt-6 flex justify-center gap-3">
                       <Link href="/dashboard" className={btnSecondary}>Discard</Link>
-                      <button onClick={save} className={btnPrimary}>Try again</button>
+                      <button onClick={save} className={btnPrimary}>Try Again</button>
                     </div>
                   </>
                 ) : (
                   <>
                     <div aria-hidden className="mx-auto size-12 animate-spin rounded-full border-4 border-accent border-t-ink" />
-                    <h2 className="mt-5 text-h3">Analysing your stride</h2>
+                    <h2 className="mt-5 text-h3">Analysing Your Stride</h2>
                     <p className="mt-2 text-muted">Saving your video and measuring every step…</p>
                   </>
                 )}

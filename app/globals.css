@@ -10,7 +10,9 @@
   --color-surface: #ffffff; /* cards, inputs */
   --color-ink: #17161f; /* headings, primary text, primary buttons */
   --color-muted: #5f5e6b; /* secondary text */
-  --color-accent: #cdbded; /* soft lavender: highlights, focus ring, logo mark */
+  --color-accent: #cdbded; /* soft lavender: highlights, focus ring */
+  --color-brand: #4b2a9a; /* dark purple: the logo's skeleton */
+  --color-joint: #ff7a59; /* coral: the logo's scanned joints */
 
   /* Corner radii: soft and round; controls are pills (rounded-full), cards are lg */
   --radius-xs: 6px;
@@ -86,6 +88,19 @@
 
 /* Press feedback for every button: shrink slightly while held. Utility classes still win where a component sets its own. */
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent; /* the press-shrink is the tap feedback instead */
+  }
+  /* No page "rubber-band" bounce with a mouse/trackpad; touch screens keep pull-to-refresh. */
+  @media (pointer: fine) {
+    html { overscroll-behavior: none; }
+  }
+  a, button, input, select, label {
+    touch-action: manipulation; /* no double-tap zoom delay on phones */
+  }
+  h1, h2, h3 {
+    text-wrap: balance; /* no single word left alone on a heading's last line */
+  }
   button {
     transition: scale 120ms var(--ease-out);
   }
@@ -93,6 +108,60 @@
     scale: 0.97;
   }
 }
+
+/* Loading placeholder: a soft grey block with a light sweep moving across it. */
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, #ececf0 25%, #f7f7f9 50%, #ececf0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton, .animate-shake { animation: none; }
+}
+
+/* Goal sliders: several range inputs share one track. The inputs are see-through and ignore clicks;
+   only the round handles take them. Min/max handles are hollow, the target handle is filled. */
+.range-multi {
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  margin: 0;
+}
+.range-multi::-webkit-slider-runnable-track { background: transparent; }
+.range-multi::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+  transition: scale 120ms var(--ease-out);
+}
+.range-multi::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 2px solid var(--color-ink);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: grab;
+}
+.range-multi:active::-webkit-slider-thumb { scale: 1.15; cursor: grabbing; }
+.range-multi:focus-visible { outline: none; }
+/* Focused handle: a thin ink ring just outside it (same idea as the input boxes). */
+.range-multi:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-ink); }
+.range-multi:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-ink); }
+.range-target::-webkit-slider-thumb { background: var(--color-ink); }
+.range-target::-moz-range-thumb { background: var(--color-ink); }
 
 body {
   background: var(--color-bg);

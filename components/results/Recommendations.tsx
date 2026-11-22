@@ -7,7 +7,7 @@ export default function Recommendations({ items }: { items: Recommendation[] }) 
   if (items.length === 0) {
     return (
       <div className={card}>
-        <h3 className="text-h3">Everything is on goal</h3>
+        <h3 className="text-h3">Everything Is on Goal</h3>
         <p className="mt-2 text-muted">Every metric with a goal landed inside its range. Keep running the way you are.</p>
       </div>
     );
@@ -19,7 +19,7 @@ export default function Recommendations({ items }: { items: Recommendation[] }) 
           <h3 className="text-h3">{METRIC_LABELS[r.metric].name}</h3>
           <p className="mt-2">{r.issue}</p>
           <p className="mt-4 rounded-md bg-bg px-4 py-3 text-body-lg font-medium">{r.cue}</p>
-          <h4 className="mt-5 text-h4">Try these drills</h4>
+          <h4 className="mt-5 text-h4">Try These Drills</h4>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
             {r.drills.map((d) => <li key={d}>{d}</li>)}
           </ul>

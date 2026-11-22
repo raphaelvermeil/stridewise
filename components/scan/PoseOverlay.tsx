@@ -57,5 +57,5 @@ export default function PoseOverlay({ video, onFrame }: Props) {
     };
   }, [video, onFrame]);
 
-  return <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full object-contain" />;
+  return <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-contain" />;
 }
