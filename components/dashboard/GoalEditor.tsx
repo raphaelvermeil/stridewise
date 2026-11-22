@@ -84,13 +84,18 @@ export default function GoalEditor({ profile }: { profile: Profile }) {
       <p className="flex flex-wrap items-center gap-x-5 gap-y-1 text-body-sm text-muted">
         <span className="flex items-center gap-1.5"><span className="size-3 rounded-full border-2 border-ink bg-surface" /> Min / max: your goal range</span>
         <span className="flex items-center gap-1.5"><span className="size-3 rounded-full bg-ink" /> Target: where you'd ideally be</span>
+        <span className="flex items-center gap-1.5"><span className="size-3 rounded-full bg-ink/20" /> Grey: where it was saved</span>
       </p>
 
-      {goals.map(({ metric: m }) => {
+      {goals.map((g) => {
+        const m = g.metric;
         const r = values[m]!;
         const label = METRIC_LABELS[m];
         const [lo, hi, step] = SCALE[m];
-        const min = Math.min(lo, Math.floor(r.min)), max = Math.max(hi, Math.ceil(r.max));
+        // Where each handle was at the last save (goals only changes on load and save), for the ghost markers.
+        const show = (v: number) => displayValue(m, v, profile.heightCm);
+        const was: Range = { min: show(g.min), target: show(g.target ?? (g.min + g.max) / 2), max: show(g.max) };
+        const min = Math.min(lo, Math.floor(Math.min(r.min, was.min))), max = Math.max(hi, Math.ceil(Math.max(r.max, was.max)));
         const pct = (v: number) => ((v - min) / (max - min)) * 100;
         return (
           <div key={m} className="flex flex-col gap-3">
@@ -107,6 +112,12 @@ export default function GoalEditor({ profile }: { profile: Profile }) {
               {/* Inset by half a handle (10px): the browser keeps handle centres that far from each end. */}
               <div className="absolute inset-x-2.5 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-bg">
                 <div className="absolute inset-y-0 rounded-full bg-accent" style={{ left: `${pct(r.min)}%`, right: `${100 - pct(r.max)}%` }} />
+                {/* Ghost markers: a faint copy of each handle left where it was saved, once it has been moved away.
+                    Behind the real handles, and they ignore clicks. */}
+                {(["min", "max", "target"] as const).map((k) => Math.abs(r[k] - was[k]) >= step / 2 && (
+                  <span key={k} aria-hidden style={{ left: `${pct(was[k])}%` }}
+                    className="pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 animate-fade-in rounded-full bg-ink/20" />
+                ))}
               </div>
               {(["min", "max", "target"] as const).map((k) => (
                 <input key={k} type="range" min={min} max={max} step={step} value={r[k]}

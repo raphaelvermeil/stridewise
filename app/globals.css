@@ -12,7 +12,7 @@
   --color-muted: #5f5e6b; /* secondary text */
   --color-accent: #cdbded; /* soft lavender: highlights, focus ring */
   --color-brand: #4b2a9a; /* dark purple: the logo's skeleton */
-  --color-joint: #ff7a59; /* coral: the logo's scanned joints */
+  --color-joint: #c3a6ff; /* bright lavender: the logo's scanned joints */
 
   /* Corner radii: soft and round; controls are pills (rounded-full), cards are lg */
   --radius-xs: 6px;
@@ -35,6 +35,11 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --animate-breathe: breathe 4000ms var(--ease-in-out) infinite; /* countdown */
   --animate-shake: shake 360ms var(--ease-out); /* wrong password */
+  --animate-fade-in: fade-in 200ms var(--ease-out); /* goal slider ghost markers */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
   @keyframes shake {
     0%, 100% { translate: 0; }
     20%, 60% { translate: -6px; }
@@ -121,7 +126,7 @@
   to { background-position: -100% 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .skeleton, .animate-shake { animation: none; }
+  .skeleton, .animate-shake, .animate-fade-in { animation: none; }
 }
 
 /* Goal sliders: several range inputs share one track. The inputs are see-through and ignore clicks;
