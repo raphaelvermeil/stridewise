@@ -9,8 +9,10 @@ import type { LandmarkFrame } from "@/lib/types";
 // The setup must pass (or fail) for this long without a break before "ready" changes.
 // Passing: one lucky frame doesn't count. Failing: one jumpy frame mid-stride (loose clothing, blur) doesn't stop a recording.
 const HOLD_MS = 1000;
-// A spoken problem that still isn't fixed is said again after this long, in case the runner missed it.
-const REPEAT_MS = 6000;
+// Voice: the runner gets this long to settle before a problem is spoken...
+const SETTLE_MS = 3000;
+// ...and after speaking, the voice stays quiet at least this long, whatever happens.
+const QUIET_MS = 12000;
 
 type Props = {
   frame: LandmarkFrame | null;
@@ -32,21 +34,19 @@ export default function CameraCheck({ frame, onReady }: Props) {
   useEffect(() => onReady(ready.current));
 
   // Speak the problems too, since the runner may be standing away from the screen.
-  const message = ok ? "" : problems.join(" ");
-  const voice = useRef({ text: "", since: 0, spoken: "", spokenAt: 0 });
+  // Only the first problem, one short line at a time; the screen lists all of them.
+  const problem = ok ? "" : problems[0];
+  const voice = useRef({ failingSince: 0, spokenAt: -Infinity });
   useEffect(() => {
     const v = voice.current;
     const t = performance.now();
-    if (message !== v.text) {
-      v.text = message;
-      v.since = t;
+    if (!problem) {
+      v.failingSince = 0; // passing again: the settle timer starts over next time
+      return;
     }
-    if (message === "") {
-      if (v.spoken) say("Looks good, hold still."); // only after a problem was spoken, so it doesn't chatter
-      v.spoken = "";
-    } else if (t - v.since >= HOLD_MS && (message !== v.spoken || t - v.spokenAt >= REPEAT_MS)) {
-      say(message); // same problem for 1 s: say it (again every 6 s until it's fixed)
-      v.spoken = message;
+    v.failingSince ||= t;
+    if (t - v.failingSince >= SETTLE_MS && t - v.spokenAt >= QUIET_MS) {
+      say(problem);
       v.spokenAt = t;
     }
   });

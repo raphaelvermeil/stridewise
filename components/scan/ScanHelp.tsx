@@ -20,11 +20,7 @@ export default function ScanHelp({ onClose }: { onClose: () => void }) {
     <dialog ref={ref} onClose={onClose} aria-labelledby="scan-help-title"
       className="m-auto h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-5xl rounded-xl bg-surface p-0 text-ink shadow-lg backdrop:bg-ink/50 sm:h-[calc(100dvh-5rem)]">
       <div className="flex min-h-full flex-col gap-8 p-6 sm:p-10">
-        <div className="flex items-start justify-between gap-4">
-          <h2 id="scan-help-title" className="text-h1">Set up your scan</h2>
-          <button onClick={() => ref.current?.close()} aria-label="Close help"
-            className="grid size-10 shrink-0 place-items-center rounded-full bg-bg text-h4 transition duration-200 ease-out active:scale-[0.97]">✕</button>
-        </div>
+        <h2 id="scan-help-title" className="text-h1">Set up your scan</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {/* shortcut: placeholder boxes until the real diagram and example image exist */}
           <figure className="flex aspect-video flex-col items-center justify-center rounded-lg bg-white shadow-xs">
