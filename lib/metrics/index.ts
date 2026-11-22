@@ -65,6 +65,7 @@ export function analyzeOverTime(frames: LandmarkFrame[], heightCm: number): Metr
       verticalOscillationCm: verticalOscillation(f, [c, next], heightCm),
     }];
   });
+  if (steps.length === 0) return []; // no landings detected (e.g. standing still): nothing to chart
 
   // Cadence = steps ÷ time over a centered 10-step window. One extra or missed landing shifts it ~10%,
   // where the per-step value (60000 / one gap) would spike to 400–600. Fewer steps at the start and end.

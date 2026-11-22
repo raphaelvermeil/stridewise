@@ -98,3 +98,8 @@ test("graph cadence = steps ÷ time over 10 steps: steady on clip1", () => {
   // Away from the edges every point is within 10% of the session cadence: one stray landing in 10 steps.
   for (const v of series.slice(5, -5)) assert.ok(Math.abs(v - base) / base <= 0.1, `graph ${v.toFixed(0)} vs session ${base}`);
 });
+
+test("analyzeOverTime: no landings detected (runner standing still) gives an empty graph, not a crash", () => {
+  const still = Array.from({ length: 60 }, (_, i) => ({ ...clip1[0], t: i * (1000 / 30) }));
+  assert.deepEqual(analyzeOverTime(still, 178), []);
+});
