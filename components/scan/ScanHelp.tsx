@@ -2,11 +2,12 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { btnPrimary } from "@/components/ui/styles";
 
 const STEPS = [
-  ["Camera side-on, at hip height", "Put the camera beside the treadmill, about 2–3 m away, pointing straight at your side."],
+  ["Camera side-on, low down", "Put the camera beside the treadmill, about 2.5 m away and 30–60 cm off the floor, pointing straight at your side."],
   ["Whole body in frame", "Head to feet must be in view, and you should fill at least half the frame's height."],
   ["Turn sideways", "Your side faces the camera, so your shoulders line up instead of both showing."],
   ["Good light, fitted clothes", "Baggy clothes and dim rooms hide your joints."],
@@ -31,11 +32,18 @@ export default function ScanHelp({ onClose, first }: { onClose: () => void; firs
           )}
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          {/* shortcut: placeholder boxes until the real diagram and example image exist */}
-          <figure className="flex aspect-video flex-col items-center justify-center rounded-lg bg-white shadow-xs">
-            <figcaption className="text-body-sm text-muted">Diagram: camera distance and height</figcaption>
+          <figure className="flex flex-col gap-2">
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-bg shadow-xs">
+              <Image src="/diagram.png" alt="Side view: the camera on a tripod 30–60 cm off the floor, 2.5 m from the treadmill, framing the runner from head to feet."
+                fill sizes="(min-width: 640px) 480px, 100vw" className="object-contain" priority />
+            </div>
+            <figcaption className="text-body-sm text-muted">Camera distance and height</figcaption>
           </figure>
-          <figure className="flex aspect-video flex-col items-center justify-center rounded-lg bg-white shadow-xs">
+          <figure className="flex flex-col gap-2">
+            <div className="relative aspect-video overflow-hidden rounded-lg bg-bg shadow-xs">
+              <Image src="/example.png" alt="A runner on a treadmill filmed from the side, whole body in view from head to shoes."
+                fill sizes="(min-width: 640px) 480px, 100vw" className="object-contain" priority />
+            </div>
             <figcaption className="text-body-sm text-muted">Example: a well-framed runner</figcaption>
           </figure>
         </div>
