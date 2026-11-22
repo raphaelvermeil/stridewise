@@ -79,6 +79,13 @@ export default function ScanPage() {
     };
   }, [video]);
 
+  // Help pauses the scan: silence the voice and reset the check, so it starts fresh (and quiet) once help closes.
+  const openHelp = () => {
+    speechSynthesis.cancel();
+    setCameraReady(false);
+    setHelpOpen(true);
+  };
+
   const closeHelp = () => {
     setHelpOpen(false);
     setStarted(true);
@@ -88,17 +95,22 @@ export default function ScanPage() {
     <main className="mx-auto max-w-5xl px-6 py-8">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-h1">New scan</h1>
-        <button onClick={() => setHelpOpen(true)} aria-label="How to set up" className={roundBtn}>?</button>
+        <button onClick={openHelp} aria-label="How to set up" className={roundBtn}>?</button>
       </div>
 
       {started && (
         <div className="fixed inset-0 z-50 bg-black">
-          <video ref={setVideo} autoPlay muted playsInline className="absolute inset-0 h-full w-full object-contain" />
-          <PoseOverlay video={video} onFrame={setFrame} />
+          {/* Gone once the take is saving: removing the <video> also switches the webcam off (see the effect above). */}
+          {!saving && (
+            <>
+              <video ref={setVideo} autoPlay muted playsInline className="absolute inset-0 h-full w-full object-contain" />
+              <PoseOverlay video={video} onFrame={setFrame} />
+            </>
+          )}
 
           <div className="absolute inset-x-0 top-0 flex justify-between p-4 sm:p-6">
             <Link href="/dashboard" aria-label="Cancel scan" className={roundBtn}>✕</Link>
-            <button onClick={() => setHelpOpen(true)} aria-label="How to set up" className={roundBtn}>?</button>
+            <button onClick={openHelp} aria-label="How to set up" className={roundBtn}>?</button>
           </div>
 
           {cameraError && (
@@ -116,7 +128,7 @@ export default function ScanPage() {
             </form>
           )}
 
-          {stream && speedConfirmed && !saving && (
+          {stream && speedConfirmed && !saving && !helpOpen && (
             <>
               <div className={`${card} absolute bottom-6 left-1/2 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 space-y-2 py-4`}>
                 <CameraCheck frame={frame} onReady={setCameraReady} />
